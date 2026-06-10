@@ -18,6 +18,7 @@ interface ChannelListProps {
   setSelectedSubTab: (tab: string) => void;
   darkMode: boolean;
   columnsCount?: number;
+  logoScale?: number;
 }
 
 export default function ChannelList({
@@ -28,7 +29,8 @@ export default function ChannelList({
   selectedSubTab,
   setSelectedSubTab,
   darkMode,
-  columnsCount = 3
+  columnsCount = 3,
+  logoScale = 100
 }: ChannelListProps) {
   // Filter channels according to search
   const filteredChannels = channels.filter((ch) => {
@@ -93,6 +95,7 @@ export default function ChannelList({
                       alt={channel.name}
                       referrerPolicy="no-referrer"
                       className="max-w-full max-h-full object-contain filter brightness-95 group-hover:brightness-100 transition-all"
+                      style={{ transform: `scale(${logoScale / 100})` }}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                         const parent = e.currentTarget.parentElement;
