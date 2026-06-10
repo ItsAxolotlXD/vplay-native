@@ -253,7 +253,7 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-[#343434] text-white shadow-md border-b border-[#242424] rounded-none">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between relative">
           
-          {/* Logo Title (Removed TV Icon next to Vplay Native) */}
+          {/* Logo Title (Removed TV Icon next to Vplay Android) */}
           <div className="flex items-center gap-2.5">
             {hamburgerEnabled && !bottomBarEnabled && (
               <button
@@ -266,7 +266,7 @@ export default function App() {
               </button>
             )}
             <span className="font-bold text-lg tracking-tight text-white leading-none selection:bg-white/30">
-              Vplay Native
+              Vplay Android
             </span>
             {displayClockEnabled && (
               <span className="ml-3 font-roboto text-xs font-semibold tracking-wider text-gray-300 bg-black/20 px-2 py-0.5 rounded-xs" style={{ fontFamily: "'Roboto', sans-serif" }} id="top-bar-clock">
@@ -420,7 +420,7 @@ export default function App() {
                             : "text-gray-800 hover:bg-gray-50"
                         }`}
                       >
-                        <span>Vplay Native là gì?</span>
+                        <span>Vplay Android là gì?</span>
                       </button>
 
                     </div>
@@ -549,7 +549,7 @@ export default function App() {
                       : "text-gray-800 hover:bg-gray-50"
                   }`}
                 >
-                  Vplay Native là gì?
+                  Vplay Android là gì?
                 </button>
               </div>
             </motion.div>
@@ -1080,12 +1080,12 @@ export default function App() {
           </div>
         )}
 
-        {/* =============== VIEW 6: VPLAY NATIVE LÀ GÌ? =============== */}
+        {/* =============== VIEW 6: VPLAY ANDROID LÀ GÌ? =============== */}
         {activeTab === "vplay-native-la-gi" && (
           <div className="flex-grow flex items-center justify-center py-16 text-center rounded-none bg-transparent max-w-xl mx-auto px-4">
             <div className={`font-roboto flex flex-col items-center gap-6 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
               <p className="text-sm font-medium leading-relaxed max-w-md">
-                Vplay Native là dự án build ứng dụng xem truyền hình Vplay hoàn toàn native, không port từ phiên bản web của Vplay. Hiện ứng dụng vẫn đang trong quá trình phát triển nên rất nhiều tính năng sẽ bị thiếu và sẽ có rất nhiều lỗi.
+                Vplay Android là dự án build ứng dụng xem truyền hình Vplay hoàn toàn native, không port từ phiên bản web của Vplay. Hiện ứng dụng vẫn đang trong quá trình phát triển nên rất nhiều tính năng sẽ bị thiếu và sẽ có rất nhiều lỗi.
               </p>
               <button
                 onClick={() => switchTab("truc-tiep")}
