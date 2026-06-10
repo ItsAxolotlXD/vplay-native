@@ -5,13 +5,13 @@ import {
   X, 
   RefreshCw,
   Search,
-  LayoutGrid
+  MoreVertical
 } from "lucide-react";
 import { CHANNELS_DATA, Channel } from "./channelsData";
 import MaterialPlayer from "./components/MaterialPlayer";
 import ChannelList from "./components/ChannelList";
 
-type AppTab = "trang-chu" | "truc-tiep" | "package" | "cai-dat";
+type AppTab = "trang-chu" | "truc-tiep" | "package" | "cai-dat" | "sign-in" | "vplay-native-la-gi";
 
 export default function App() {
   // Load Dark Mode state (default is false/off as specified)
@@ -51,6 +51,9 @@ export default function App() {
     return allChannels[0];
   });
 
+  // Previous playing channel trace for rewind/back to previous channel feature
+  const [previousChannel, setPreviousChannel] = useState<Channel | null>(null);
+
   // Tab State & Dropdown toggle
   const [activeTab, setActiveTab] = useState<AppTab>("truc-tiep");
   const [showAppsMenu, setShowAppsMenu] = useState(false);
@@ -87,9 +90,20 @@ export default function App() {
 
   // Select channel group
   const handleSelectChannel = (channel: Channel) => {
+    if (currentChannel && currentChannel.id !== channel.id) {
+      setPreviousChannel(currentChannel);
+    }
     setCurrentChannel(channel);
     // Smooth scroll top on mobile layout
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleRewind = () => {
+    if (previousChannel) {
+      const temp = currentChannel;
+      setCurrentChannel(previousChannel);
+      setPreviousChannel(temp);
+    }
   };
 
   // Dynamic values based on Dark Mode setting (Removed transition-colors & duration classes to prevent transitions/fade)
@@ -112,6 +126,25 @@ export default function App() {
 
           {/* Top Bar Action Buttons */}
           <div className="flex items-center gap-1.5">
+
+            {/* Rewind/Back to last viewed channel Button */}
+            {activeTab === "truc-tiep" && (
+              <button
+                onClick={handleRewind}
+                disabled={!previousChannel}
+                className={`p-2 rounded-none relative transition-all ${
+                  previousChannel 
+                    ? "hover:bg-white/10 active:bg-white/15 text-white cursor-pointer" 
+                    : "opacity-40 text-white/50 cursor-not-allowed"
+                }`}
+                title={previousChannel ? `Quay lại kênh xem gần đây: ${previousChannel.name}` : "Chưa có kênh xem gần nhất"}
+                id="btn-top-rewind"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current stroke-none flex-shrink-0">
+                  <path d="M19 21L6 12L19 3V21Z" />
+                </svg>
+              </button>
+            )}
 
             {/* Toggle Search Icon Button */}
             {activeTab === "truc-tiep" && (
@@ -143,7 +176,7 @@ export default function App() {
                 title="Ứng dụng hệ thống"
                 id="btn-apps"
               >
-                <LayoutGrid className="w-5 h-5 whitespace-nowrap" />
+                <MoreVertical className="w-5 h-5" />
               </button>
 
               {/* Dropdown Menu: ALWAYS flat square edges, solid white background with gray text. NO icons, NO status dots */}
@@ -209,6 +242,34 @@ export default function App() {
                       }`}
                     >
                       <span>Cài đặt</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("sign-in");
+                        setShowAppsMenu(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-xs font-bold font-sans ${
+                        activeTab === "sign-in" 
+                          ? "bg-gray-100 text-[#1a73e8]" 
+                          : "text-gray-800 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>Sign in</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("vplay-native-la-gi");
+                        setShowAppsMenu(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 text-xs font-bold font-sans ${
+                        activeTab === "vplay-native-la-gi" 
+                          ? "bg-gray-100 text-[#1a73e8]" 
+                          : "text-gray-800 hover:bg-gray-50"
+                      }`}
+                    >
+                      <span>Vplay Native là gì?</span>
                     </button>
 
                   </div>
@@ -433,6 +494,33 @@ export default function App() {
                 </span>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* =============== VIEW 5: SIGN IN (COMING SOON SIMPLIFIED) =============== */}
+        {activeTab === "sign-in" && (
+          <div className="flex-grow flex items-center justify-center py-24 text-center rounded-none bg-transparent">
+            <div className={`font-roboto ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <div className="text-sm font-bold mb-1">Coming soon.</div>
+              <div className="text-[11px] font-medium opacity-85">To get started, go to Live tab</div>
+            </div>
+          </div>
+        )}
+
+        {/* =============== VIEW 6: VPLAY NATIVE LÀ GÌ? =============== */}
+        {activeTab === "vplay-native-la-gi" && (
+          <div className="flex-grow flex items-center justify-center py-16 text-center rounded-none bg-transparent max-w-xl mx-auto px-4">
+            <div className={`font-roboto flex flex-col items-center gap-6 ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+              <p className="text-sm font-medium leading-relaxed max-w-md">
+                Vplay Native là dự án build ứng dụng xem truyền hình Vplay hoàn toàn native, không port từ phiên bản web của Vplay. Hiện ứng dụng vẫn đang trong quá trình phát triển nên rất nhiều tính năng sẽ bị thiếu và sẽ có rất nhiều lỗi.
+              </p>
+              <button
+                onClick={() => setActiveTab("truc-tiep")}
+                className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-bold uppercase tracking-wider rounded-none cursor-pointer shadow-md transition-all"
+              >
+                Đến tab Live
+              </button>
             </div>
           </div>
         )}
