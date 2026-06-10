@@ -23,84 +23,84 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "vtv1-hd",
     name: "VTV1 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/7/74/Csc.png/revision/latest/scale-to-width-down/1000?cb=20260603031315&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/7/7e/VTV1_HD_2017-2022.png/revision/latest/scale-to-width-down/1000?cb=20250320104829&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxch2/vtv1hd_abr.smil/chunklist.m3u8"
   },
   {
     id: "vtv2-hd",
     name: "VTV2 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/e/e1/2n.png/revision/latest/scale-to-width-down/1000?cb=20260603022650&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/5/55/VTV2_HD_logo_2015-2022.png/revision/latest/scale-to-width-down/1000?cb=20250110124118&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxch2/vtv2hd_abr.smil/chunklist.m3u8"
   },
   {
     id: "vtv3-hd",
     name: "VTV3 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/f/f1/V3z.png/revision/latest/scale-to-width-down/1000?cb=20260603023158&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/9/95/VTV3_HD_2016-2022.png/revision/latest/scale-to-width-down/1000?cb=20241031093609&path-prefix=vi",
     group: "VTV",
     url: "https://live-a.fptplay53.net/live/media/VTV3HD/live_hls_avc/index.m3u8"
   },
   {
     id: "vtv4-hd",
     name: "VTV4 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/7/73/4n.png/revision/latest/scale-to-width-down/1000?cb=20260603023329&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/4/42/VTV4_HD-0.png/revision/latest/scale-to-width-down/1000?cb=20221211002406&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxch2/vtv4hd_abr.smil/chunklist.m3u8"
   },
   {
     id: "vtv5-hd",
     name: "VTV5 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/5/55/5n.png/revision/latest/scale-to-width-down/1000?cb=20260603023523&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/b/b4/VTV5_HD_2017-2022.png/revision/latest/scale-to-width-down/1000?cb=20230507073421&path-prefix=vi",
     group: "VTV",
     url: "https://live-a.fptplay53.net/live/media/VTV5HD/live_hls_avc/index.m3u8"
   },
   {
     id: "vtv5-tnb-hd",
     name: "VTV5 Tây Nam Bộ HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/5/55/5n.png/revision/latest/scale-to-width-down/1000?cb=20260603023523&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/b/b4/VTV5_HD_2017-2022.png/revision/latest/scale-to-width-down/1000?cb=20230507073421&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxhd1/vtv5tnb_vhls.smil/chunklist_b5000000.m3u8"
   },
   {
     id: "vtv5-tn-hd",
     name: "VTV5 Tây Nguyên HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/5/55/5n.png/revision/latest/scale-to-width-down/1000?cb=20260603023523&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/b/b4/VTV5_HD_2017-2022.png/revision/latest/scale-to-width-down/1000?cb=20230507073421&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxhd1/vtv5taynguyen_vhls.smil/chunklist_b5000000.m3u8"
   },
   {
     id: "vtv6-hd",
     name: "VTV6 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/1/19/6n.png/revision/latest/scale-to-width-down/1000?cb=20260603024041&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/9/98/VTV6_HD_logo_21-02-2018_V2.png/revision/latest/scale-to-width-down/1000?cb=20230927091207&path-prefix=vi",
     group: "VTV",
     url: "https://static.wikia.nocookie.net/ftv/images/2/28/Imageacknksdnjkvsdvjkbs.png/revision/latest?cb=20260530031557&path-prefix=vi"
   },
   {
     id: "vtv7-hd",
     name: "VTV7 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/9/91/7n.png/revision/latest/scale-to-width-down/1000?cb=20260603025250&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/c/cb/VTV7_HD_logo_2019-2022_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20260419120732&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/fnxhd1/vtv7hd_vhls.smil/chunklist_b5000000.m3u8"
   },
   {
     id: "vtv8-hd",
     name: "VTV8 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/e/e8/8n.png/revision/latest/scale-to-width-down/1000?cb=20260603025458&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/e/e7/VTV8_HD_2017%2C_2018.png/revision/latest/scale-to-width-down/1000?cb=20230213091147&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/epzhd1/vtv8hd_vhls.smil/chunklist_b5000000.m3u8"
   },
   {
     id: "vtv9-hd",
     name: "VTV9 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/1/18/9N.png/revision/latest/scale-to-width-down/1000?cb=20260603025655&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/4/45/VTV9_HD_logo_2017%2C_2018.png/revision/latest/scale-to-width-down/1000?cb=20230626081853&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/epzch2/vtv9hd_abr.smil/chunklist_b4200000.m3u8"
   },
   {
     id: "vtv10-hd",
     name: "VTV10 HD",
-    logo: "https://static.wikia.nocookie.net/ftv/images/6/6a/10vzx.png/revision/latest/scale-to-width-down/1000?cb=20260603030732&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/d/d2/VTV10_30.03.2026-nay_v2.png/revision/latest?cb=20260427023458&path-prefix=uk",
     group: "VTV",
     url: "https://live.fptplay53.net/live/media/VTV_can_tho/live_hls_avc/index.m3u8"
   },

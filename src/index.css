@@ -3,6 +3,7 @@
 
 @theme {
   --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+  --font-roboto: "Roboto", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
