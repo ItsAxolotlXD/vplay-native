@@ -7,27 +7,32 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #121318; /* Material dark baseline color */
-  color: #e2e2e9;
+  background-color: #121212; /* Solid dark gray */
+  color: #f1f1f1;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
 }
 
-/* Material You Scrollbar styling */
+/* Material You Scrollbar styling with flat corners */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #1e1e1e;
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
+  border-radius: 0px !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Force override any inherited rounded styles to align with flat design */
+.rounded-none-override * {
+  border-radius: 0px !important;
 }

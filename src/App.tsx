@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Heart, 
   Tv, 
-  Menu, 
   Smartphone, 
   Info, 
   ListPlus, 
   Radio, 
-  Sparkles, 
   X, 
-  Volume2, 
-  Plus, 
   Check, 
-  Bookmark,
   RefreshCw,
-  HelpCircle,
-  Clock
+  SlidersHorizontal
 } from "lucide-react";
 import { CHANNELS_DATA, Channel } from "./channelsData";
 import MaterialPlayer from "./components/MaterialPlayer";
 import ChannelList from "./components/ChannelList";
-import ThemePicker from "./components/ThemePicker";
 
 export default function App() {
   // Load favorites from local storage
@@ -41,11 +33,6 @@ export default function App() {
     } catch {
       return [];
     }
-  });
-
-  // Active theme accent (lavender, emerald, ocean, amber, charcoal)
-  const [themeColor, setThemeColor] = useState<string>(() => {
-    return localStorage.getItem("vplay-theme") || "lavender";
   });
 
   // All channels data (static list + user's custom streams)
@@ -69,26 +56,6 @@ export default function App() {
   // Success indicator for custom channel adding
   const [addSuccess, setAddSuccess] = useState(false);
 
-  // Clock state for TV App top bar
-  const [timeStr, setTimeStr] = useState("");
-
-  useEffect(() => {
-    const updateClock = () => {
-      const offset = 7; // Ho Chi Minh time zone (UTC+7)
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const tzDate = new Date(utc + (3600000 * offset));
-      
-      const hours = String(tzDate.getHours()).padStart(2, "0");
-      const mins = String(tzDate.getMinutes()).padStart(2, "0");
-      const secs = String(tzDate.getSeconds()).padStart(2, "0");
-      setTimeStr(`${hours}:${mins}:${secs}`);
-    };
-    updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Save favorites to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("vplay-favorites", JSON.stringify(favorites));
@@ -99,11 +66,6 @@ export default function App() {
     localStorage.setItem("vplay-custom-channels", JSON.stringify(customChannels));
   }, [customChannels]);
 
-  // Save active theme
-  useEffect(() => {
-    localStorage.setItem("vplay-theme", themeColor);
-  }, [themeColor]);
-
   // Toggle Favorite
   const handleToggleFavorite = (id: string) => {
     setFavorites((prev) =>
@@ -111,7 +73,7 @@ export default function App() {
     );
   };
 
-  // Select channel
+  // Select channel group
   const handleSelectChannel = (channel: Channel) => {
     setCurrentChannel(channel);
     // Smooth scroll top on mobile layout
@@ -159,342 +121,243 @@ export default function App() {
     }
   };
 
-  // Dynamic color palette generator based on theme selection
-  const getThemeColors = () => {
-    switch (themeColor) {
-      case "emerald":
-        return {
-          bgPrimary: "bg-[#11140e]",
-          textPrimary: "text-[#e2e3db]",
-          accentPill: "bg-[#386a20]",
-          accentText: "text-[#62c036]",
-          badgeActive: "bg-[#386a20] text-emerald-100",
-          accentBorder: "border-emerald-500/15",
-          accentShadow: "shadow-emerald-950/20",
-          cardActiveBg: "bg-[#1f231b]"
-        };
-      case "ocean":
-        return {
-          bgPrimary: "bg-[#0b131c]",
-          textPrimary: "text-[#e1e2ec]",
-          accentPill: "bg-[#0961a4]",
-          accentText: "text-[#3da0ff]",
-          badgeActive: "bg-[#0961a4] text-blue-100",
-          accentBorder: "border-blue-500/15",
-          accentShadow: "shadow-blue-950/20",
-          cardActiveBg: "bg-[#17212e]"
-        };
-      case "amber":
-        return {
-          bgPrimary: "bg-[#18120b]",
-          textPrimary: "text-[#ece0d5]",
-          accentPill: "bg-[#b16a00]",
-          accentText: "text-[#f9b13d]",
-          badgeActive: "bg-[#b16a00] text-amber-100",
-          accentBorder: "border-amber-500/15",
-          accentShadow: "shadow-amber-950/20",
-          cardActiveBg: "bg-[#251b11]"
-        };
-      case "charcoal":
-        return {
-          bgPrimary: "bg-[#141416]",
-          textPrimary: "text-[#e5e5e8]",
-          accentPill: "bg-[#60616b]",
-          accentText: "text-[#bfbfc7]",
-          badgeActive: "bg-[#60616b] text-gray-100",
-          accentBorder: "border-slate-500/15",
-          accentShadow: "shadow-slate-900/20",
-          cardActiveBg: "bg-[#202023]"
-        };
-      default: // lavender (Android 14 standard)
-        return {
-          bgPrimary: "bg-[#121318]", // deep midnight violet
-          textPrimary: "text-[#e2e2e9]",
-          accentPill: "bg-[#4f378b]",
-          accentText: "text-[#d0bcff]",
-          badgeActive: "bg-[#4f378b] text-[#e6e1e6]",
-          accentBorder: "border-purple-500/15",
-          accentShadow: "shadow-purple-950/20",
-          cardActiveBg: "bg-[#232129]"
-        };
-    }
-  };
-
-  const colors = getThemeColors();
-
   return (
-    <div className={`min-h-screen ${colors.bgPrimary} ${colors.textPrimary} transition-colors duration-300 pb-12 font-sans`}>
+    <div className="min-h-screen bg-[#121212] text-[#f1f1f1] pb-10 font-sans rounded-none flex flex-col">
       
-      {/* Native-like Android Navigation Bar / Header */}
-      <header className="sticky top-0 z-40 bg-black/60 shadow-lg backdrop-blur-md border-b border-white/5">
+      {/* SOLID MATERIAL BLUE TOP BAR - FLAT DESIGN */}
+      <header className="sticky top-0 z-40 bg-[#1a73e8] text-white shadow-md border-b border-[#1557b0] rounded-none">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           
-          {/* Logo & App Info */}
-          <div className="flex items-center gap-2.5">
-            <div className={`w-10 h-10 rounded-full ${colors.accentPill} flex items-center justify-center text-white shadow-md ${colors.accentShadow}`}>
-              <Tv className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="font-bold text-base tracking-tight text-white">Vplay Native</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest bg-white/10 ${colors.accentText}`}>
-                  BASE-M3
-                </span>
-              </div>
-              <span className="text-[10px] text-gray-400 block mt-0.5 font-medium">
-                Android Material TV Player
-              </span>
-            </div>
+          {/* Logo Title (No subtitles or extra badges) */}
+          <div className="flex items-center gap-2">
+            <Tv className="w-5 h-5 text-white" />
+            <span className="font-bold text-lg tracking-tight text-white leading-none">
+              Vplay Native
+            </span>
           </div>
 
-          {/* Right Action Widgets */}
-          <div className="flex items-center gap-3">
-            {/* Clock Widget */}
-            <div className="hidden sm:flex items-center gap-1.5 bg-white/5 border border-white/5 px-3 py-1.5 rounded-full text-[11px] font-mono font-medium text-gray-300">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{timeStr || "14:00:00"}</span>
-              <span className="text-emerald-500 font-bold">• ICT (VN)</span>
-            </div>
-
-            {/* Custom stream adding modal switch */}
+          {/* Top Bar Action Buttons */}
+          <div className="flex items-center gap-1">
+            {/* Custom stream adding button */}
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className={`p-2 rounded-full hover:bg-white/10 text-gray-300 transition-colors cursor-pointer relative`}
+              className="p-2 hover:bg-white/10 active:bg-white/15 text-white transition-colors cursor-pointer relative rounded-none"
               title="Thêm luồng m3u8 tự chọn"
               id="btn-add-stream"
             >
               <ListPlus className="w-5 h-5" />
               {customChannels.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-yellow-400 rounded-none animate-pulse" />
               )}
             </button>
 
-            {/* Help / Information banner toggle */}
+            {/* Help Info Toggle button */}
             <button
               onClick={() => setShowHelp(!showHelp)}
-              className="p-2 rounded-full hover:bg-white/10 text-gray-350 transition-colors cursor-pointer text-gray-400"
+              className="p-2 hover:bg-white/10 active:bg-white/15 text-white transition-colors cursor-pointer rounded-none"
               title="Hướng dẫn sử dụng"
               id="btn-help"
             >
-              <HelpCircle className="w-5 h-5" />
+              <Info className="w-5 h-5" />
             </button>
           </div>
 
         </div>
       </header>
 
-      {/* Main Container Layout */}
-      <main className="max-w-7xl mx-auto px-4 py-4 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* Main Container Layout: Optimized vertical single column for mobile first */}
+      <main className="max-w-7xl w-full mx-auto px-3 py-3 flex flex-col gap-3 flex-grow">
         
-        {/* LEFT COLUMN: Player & Diagnostic Panels (Cols span 7 on large layout) */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        {/* Dynamic Player Screen and Title Container */}
+        <div className="flex flex-col gap-3 rounded-none">
           
-          {/* Active play information banner (Material M3 pill style) */}
-          <div className="flex items-center justify-between bg-white/5 border border-white/5 rounded-3xl p-4 gap-3">
+          {/* Live Player Element */}
+          <MaterialPlayer 
+            currentChannel={currentChannel} 
+            themeColor="ocean" 
+          />
+
+          {/* Active play information banner (No Heart rating / No rounded corners) */}
+          <div className="flex items-center justify-between bg-[#1e1e21] border border-white/5 p-3 rounded-none gap-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white/10 p-1 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-white/10 p-0.5 flex items-center justify-center flex-shrink-0 rounded-none border border-white/5">
                 <img 
                   src={currentChannel.logo} 
                   alt={currentChannel.name}
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-full object-contain"
                   onError={(e) => {
                     e.currentTarget.src = "https://images.unsplash.com/photo-1542204172-e7052809a862?auto=format&fit=crop&w=120&q=80";
                   }}
                 />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-white leading-tight truncate">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-sm font-bold text-white truncate leading-none">
                     {currentChannel.name}
                   </h2>
-                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${colors.badgeActive}`}>
+                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 bg-[#1a73e8] text-white rounded-none leading-none">
                     {currentChannel.group}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 truncate mt-0.5">
-                  Đang phát từ nguồn liên kết m3u8
+                <p className="text-[10px] text-gray-400 truncate mt-1">
+                  Đang phát nội dung trực tuyến m3u8
                 </p>
               </div>
             </div>
 
-            {/* Favoriting button */}
-            <button
-              onClick={() => handleToggleFavorite(currentChannel.id)}
-              className="p-3 bg-white/5 hover:bg-white/10 active:scale-95 transition-all rounded-full border border-white/5 text-gray-300 hover:text-rose-400"
-              title="Thêm vào danh sách yêu thích"
-              id="btn-toggle-favorite-banner"
+            {/* Quick reset playback helper */}
+            <button 
+              onClick={() => {
+                setCurrentChannel(CHANNELS_DATA[0]);
+              }}
+              className="p-2 hover:bg-white/5 bg-white/10 text-gray-300 hover:text-white transition-colors rounded-none text-xs flex items-center gap-1 font-semibold"
+              title="Khởi động lại kênh mặc định"
             >
-              <Heart className={`w-5 h-5 ${favorites.includes(currentChannel.id) ? "fill-rose-500 text-rose-500" : ""}`} />
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">Khôi phục</span>
             </button>
           </div>
 
-          {/* Actual live-TV streamer module */}
-          <MaterialPlayer 
-            currentChannel={currentChannel} 
-            themeColor={themeColor} 
-          />
+        </div>
 
-          {/* Help & setup banner info */}
-          {showHelp && (
-            <div className="relative bg-[#1c1b1f] border border-blue-500/15 p-5 rounded-3xl text-sm leading-relaxed text-gray-300">
+        {/* Info panel section if toggled */}
+        {showHelp && (
+          <div className="relative bg-[#1c1b1f] border border-[#1a73e8]/30 p-4 rounded-none text-xs leading-relaxed text-gray-300">
+            <button 
+              onClick={() => setShowHelp(false)}
+              className="absolute top-3.5 right-3.5 p-1 hover:bg-white/10 text-gray-400 hover:text-white rounded-none"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="font-bold text-[#1a73e8] text-sm mb-2 flex items-center gap-1.5 uppercase">
+              <Info className="w-4 h-4" /> Thiết kế tối ưu hóa cho Mobile
+            </h3>
+            <ul className="list-disc pl-4 space-y-1.5 text-gray-400">
+              <li>Mỗi ô lưới kênh hiển thị duy nhất <span className="text-white">biểu tượng (Logo)</span> tối giản của nhà đài giúp thao tác chuyển nhanh thân thiện với ngón tay.</li>
+              <li>Sử dụng tính năng <span className="text-white font-semibold">Tỉ lệ khung hình</span> trong trình phát để điều chỉnh tràn viền hoặc khít với màn hình điện thoại của bạn.</li>
+              <li>Chạm vào nút Smartphone <Smartphone className="inline w-3 h-3 mx-1 text-sky-400" /> để chạy chế độ cửa sổ nổi <span className="text-white">Picture-in-Picture</span> tuyệt vời cho di động.</li>
+              <li>Hệ thống liên kết m3u8 nạp nhanh qua cơ chế luồng chất lượng cao.</li>
+            </ul>
+          </div>
+        )}
+
+        {/* Custom channel addition sheet form */}
+        {showAddForm && (
+          <div className="bg-[#1f1f23] p-4 rounded-none border border-white/5 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
+                <ListPlus className="w-4 h-4 text-[#1a73e8]" /> Thêm Luồng Kênh M3U8 Tự Chọn
+              </h3>
               <button 
-                onClick={() => setShowHelp(false)}
-                className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white"
+                onClick={() => setShowAddForm(false)} 
+                className="p-1 hover:bg-white/5 text-gray-400 hover:text-white rounded-none"
               >
                 <X className="w-4 h-4" />
               </button>
-              <h3 className="font-bold text-white text-sm mb-2 flex items-center gap-1.5 text-blue-400">
-                <Info className="w-4 h-4" /> Hướng Dẫn Kỹ Thuật "Vplay Native"
-              </h3>
-              <ul className="list-disc pl-5 mt-1 text-xs text-gray-400 space-y-1.5">
-                <li>Ứng dụng phát trực tuyến luồng HLS (.m3u8) tối ưu hóa của Việt Nam thông qua <span className="text-white">hls.js</span>.</li>
-                <li>Hầu hết các kênh VTV, HTV, VTC và các đài Địa phương đều tải trực tiếp từ m3u8 chất lượng cao gốc Việt Nam.</li>
-                <li><span className="text-white font-bold">Lưu ý Kênh VTV6 HD:</span> Nguồn trong play gốc cung cấp hình ảnh tĩnh. Ứng dụng đã xử lý lỗi tải để ngăn không làm đơ trình duyệt.</li>
-                <li>Sử dụng chức năng chọn <span className="text-white font-semibold">Tỉ lệ hình ảnh</span> (Crop, Tràn viền, Kéo dãn) để tối ưu hiển thị phù hợp với thiết bị của bạn.</li>
-                <li>Nhấn nút hình điện thoại <Smartphone className="inline w-3 h-3 mx-1" /> để bật chế độ <span className="text-white">Ảnh trong Ảnh (Picture-in-Picture)</span> tiếp tục xem TV khi chuyển sang tab khác.</li>
-              </ul>
             </div>
-          )}
 
-          {/* Theme Dynamic picker inside left column */}
-          <ThemePicker 
-            activeTheme={themeColor} 
-            onChangeTheme={(colorId) => setThemeColor(colorId)} 
-          />
+            <form onSubmit={handleAddCustomChannel} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-400 font-semibold uppercase">Tên Kênh Truyền Hình *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Ví dụ: VTV3 SD, Kênh Phim Mỹ,..." 
+                  value={newChanName}
+                  onChange={(e) => setNewChanName(e.target.value)}
+                  className="bg-[#121212] py-2 px-3 rounded-none text-xs text-white focus:outline-none border border-white/5 focus:border-[#1a73e8]"
+                />
+              </div>
 
-          {/* Custom channel addition sheet form */}
-          {showAddForm && (
-            <div className="bg-[#1f1f23] p-5 rounded-3xl border border-white/5 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
-                  <ListPlus className={`w-4 h-4 ${colors.accentText}`} /> Thêm Luồng Kênh M3U8 Tự Chọn
-                </h3>
-                <button 
-                  onClick={() => setShowAddForm(false)} 
-                  className="p-1 hover:bg-white/5 rounded-full text-gray-400 hover:text-white"
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-400 font-semibold uppercase font-mono">Đường Dẫn Liên Kết M3U8 *</label>
+                <input 
+                  type="url" 
+                  required
+                  placeholder="https://example.com/playlist/chunklist.m3u8" 
+                  value={newChanUrl}
+                  onChange={(e) => setNewChanUrl(e.target.value)}
+                  className="bg-[#121212] py-2 px-3 rounded-none text-xs text-white focus:outline-none border border-white/5 focus:border-[#1a73e8] font-mono"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-400 font-semibold uppercase">Đường Dẫn Biểu Tượng Logo</label>
+                <input 
+                  type="url" 
+                  placeholder="https://example.com/logo.png" 
+                  value={newChanLogo}
+                  onChange={(e) => setNewChanLogo(e.target.value)}
+                  className="bg-[#121212] py-2 px-3 rounded-none text-xs text-white focus:outline-none border border-white/5 focus:border-[#1a73e8]"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] text-gray-400 font-semibold uppercase">Nhóm Phân Loại (Group-Title)</label>
+                <select
+                  value={newChanGroup}
+                  onChange={(e) => setNewChanGroup(e.target.value)}
+                  className="bg-[#121212] py-2 px-3 rounded-none text-xs text-white focus:outline-none border border-white/5 focus:border-[#1a73e8] cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
-                </button>
+                  <option value="VTV">Phân Khúc VTV</option>
+                  <option value="K+">Thể Thao & K+</option>
+                  <option value="VTC">Truyền Hình VTC</option>
+                  <option value="HTV">Tổng Hợp HTV</option>
+                  <option value="VTVcab">Dịch Vụ VTVcab</option>
+                  <option value="Địa phương">Kênh Đài Địa phương</option>
+                  <option value="Thiết yếu">Kênh Thiết yếu, ANTV, QPVN</option>
+                  <option value="Phát thanh">Kênh Đài Phát thanh / Radio</option>
+                </select>
               </div>
 
-              <form onSubmit={handleAddCustomChannel} className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] text-gray-400 font-semibold uppercase">Tên Kênh Truyền Hình *</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="Ví dụ: VTV3 SD, Kênh Phim Mỹ,..." 
-                    value={newChanName}
-                    onChange={(e) => setNewChanName(e.target.value)}
-                    className="bg-[#121318] py-2 px-3.5 rounded-xl text-xs text-white focus:outline-none border border-white/5 focus:border-white/20"
-                  />
+              {addSuccess ? (
+                <div className="bg-[#1a73e8]/20 text-[#1a73e8] p-2 rounded-none text-xs font-semibold flex items-center justify-center gap-1.5">
+                  <Check className="w-4 h-4" /> Thêm kênh thành công! Đang tải luồng...
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] text-gray-400 font-semibold uppercase font-mono">Đường Dẫn Liên Kết M3U8 (Live HLS Source) *</label>
-                  <input 
-                    type="url" 
-                    required
-                    placeholder="https://example.com/playlist/chunklist.m3u8" 
-                    value={newChanUrl}
-                    onChange={(e) => setNewChanUrl(e.target.value)}
-                    className="bg-[#121318] py-2 px-3.5 rounded-xl text-xs text-white focus:outline-none border border-white/5 focus:border-white/20 font-mono"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] text-gray-400 font-semibold uppercase">Đường Dẫn Biểu Tượng Logo (Ảnh PNG/JPG tùy chọn)</label>
-                  <input 
-                    type="url" 
-                    placeholder="https://example.com/logo.png" 
-                    value={newChanLogo}
-                    onChange={(e) => setNewChanLogo(e.target.value)}
-                    className="bg-[#121318] py-2 px-3.5 rounded-xl text-xs text-white focus:outline-none border border-white/5 focus:border-white/20"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] text-gray-400 font-semibold uppercase">Nhóm Phân Loại (Group-Title)</label>
-                  <select
-                    value={newChanGroup}
-                    onChange={(e) => setNewChanGroup(e.target.value)}
-                    className="bg-[#121318] py-2 px-3 px-3.5 rounded-xl text-xs text-white focus:outline-none border border-white/5 focus:border-white/20 cursor-pointer"
-                  >
-                    <option value="VTV">Phân Khúc VTV</option>
-                    <option value="K+">Thể Thao & K+</option>
-                    <option value="VTC">Truyền Hình VTC</option>
-                    <option value="HTV">Tổng Hợp HTV</option>
-                    <option value="VTVcab">Dịch Vụ VTVcab</option>
-                    <option value="Địa phương">Kênh Đài Địa phương</option>
-                    <option value="Thiết yếu">Kênh Thiết yếu, ANTV, QPVN</option>
-                    <option value="Phát thanh">Kênh Đài Phát thanh / Radio</option>
-                  </select>
-                </div>
-
-                {addSuccess ? (
-                  <div className="bg-emerald-950/40 text-emerald-400 p-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
-                    <Check className="w-4 h-4" /> Thêm kênh thành công! Đang tải luồng...
-                  </div>
-                ) : (
-                  <div className="flex gap-2 justify-end mt-2">
-                    {customChannels.length > 0 && (
-                      <button 
-                        type="button"
-                        onClick={handleClearCustomChannels}
-                        className="py-2.5 px-4 rounded-full text-xs font-semibold bg-red-950/40 text-red-300 border border-red-500/10 hover:bg-red-900/30 transition-colors cursor-pointer"
-                      >
-                        Xóa Kênh Đã Thêm
-                      </button>
-                    )}
+              ) : (
+                <div className="flex gap-2 justify-end mt-2">
+                  {customChannels.length > 0 && (
                     <button 
-                      type="submit"
-                      className={`py-2.5 px-5 rounded-full text-xs font-semibold text-white transition-all cursor-pointer ${colors.accentPill}`}
+                      type="button"
+                      onClick={handleClearCustomChannels}
+                      className="py-2 px-4 rounded-none text-xs font-semibold bg-red-950/40 text-red-350 border border-red-500/10 hover:bg-red-900/30 transition-colors cursor-pointer"
                     >
-                      Xác Nhận Thêm
+                      Xóa Kênh Đã Thêm
                     </button>
-                  </div>
-                )}
-              </form>
-            </div>
-          )}
+                  )}
+                  <button 
+                    type="submit"
+                    className="py-2 px-5 rounded-none text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] transition-colors cursor-pointer"
+                  >
+                    Xác Nhận Thêm
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
+        )}
 
-        </div>
-
-        {/* RIGHT COLUMN: Interactive Channels list database sidebar (Cols span 5) */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
-          <div className="bg-[#1f1f23] p-5 rounded-3xl border border-white/5 flex flex-col gap-4">
+        {/* Channel Grid List Module */}
+        <div className="flex flex-col gap-3 rounded-none">
+          <div className="bg-[#1e1e21] p-3 rounded-none border border-white/5 flex flex-col gap-3">
             
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
               <div>
-                <h3 className="font-bold text-white text-base flex items-center gap-1.5">
-                  <Bookmark className={`w-4 h-4 ${colors.accentText}`} /> Danh Sách Truyền Hình
+                <h3 className="font-bold text-white text-sm uppercase">
+                  Danh Sách Kênh Miễn Phí
                 </h3>
-                <span className="text-[10px] text-gray-500 block mt-0.5">
-                  Chọn kênh từ {allChannels.length} nguồn có sẵn bên dưới
-                </span>
               </div>
-
-              {/* Reset playback button */}
-              <button 
-                onClick={() => {
-                  setCurrentChannel(allChannels[0]);
-                }}
-                className="p-1.5 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors"
-                title="Khởi động lại kênh mặc định"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
             </div>
 
-            {/* List selector module */}
+            {/* Flat channel list component */}
             <ChannelList
               channels={allChannels}
               favorites={favorites}
               onToggleFavorite={handleToggleFavorite}
               currentChannel={currentChannel}
               onSelectChannel={handleSelectChannel}
-              themeColor={themeColor}
+              themeColor="ocean"
             />
 
           </div>
@@ -502,13 +365,10 @@ export default function App() {
 
       </main>
 
-      {/* Humble, clean Footer in accordance with design principles */}
-      <footer className="max-w-7xl mx-auto px-4 mt-8 pt-4 border-t border-white/5 text-center">
+      {/* Elegant, clean Footer */}
+      <footer className="w-full mt-4 py-4 px-4 border-t border-white/5 text-center">
         <p className="text-[10px] text-gray-500 font-medium">
-          Vplay Native © 2026 • Giao diện Thiết kế Android Material 3 và Roboto.
-        </p>
-        <p className="text-[9px] text-gray-600 font-mono mt-1">
-          Ứng dụng khách phát IPTV tĩnh. Toàn bộ tài nguyên video được liên kết công khai qua internet.
+          Vplay Native © 2026 • Giao diện Thiết kế Phẳng Không Bo Góc và Roboto.
         </p>
       </footer>
     </div>
