@@ -11,7 +11,14 @@ import {
   Tv,
   Package,
   Settings,
-  User
+  User,
+  Loader2,
+  UserPlus,
+  Users,
+  UserCheck,
+  UserMinus,
+  Check,
+  AlertTriangle
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { CHANNELS_DATA, Channel } from "./channelsData";
@@ -24,7 +31,19 @@ import {
   signOut, 
   updateProfile, 
   onAuthStateChanged,
-  type User as FirebaseUser 
+  type User as FirebaseUser,
+  db,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  onSnapshot
 } from "./firebase";
 
 type AppTab = "trang-chu" | "truc-tiep" | "package" | "cai-dat" | "sign-in" | "vplay-android-faq";
@@ -240,6 +259,14 @@ export default function App() {
   const [displayName, setDisplayName] = useState("");
   const [photoURL, setPhotoURL] = useState("");
 
+  // Profile / Friends list / Username state
+  const [currentUsername, setCurrentUsername] = useState<string>("");
+  const [friendsList, setFriendsList] = useState<{ uid: string; displayName: string; username: string }[]>([]);
+  const [friendInput, setFriendInput] = useState<string>("");
+  const [friendActionLoading, setFriendActionLoading] = useState<boolean>(false);
+  const [friendActionError, setFriendActionError] = useState<string | null>(null);
+  const [friendActionSuccess, setFriendActionSuccess] = useState<string | null>(null);
+
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const [appCrashed, setAppCrashed] = useState(false);
 
@@ -267,23 +294,71 @@ export default function App() {
 
   // Sync state with live Firebase Auth stream
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
         setIsLoggedIn(true);
         setDisplayName(user.displayName || "");
-        setPhotoURL(user.photoURL || "");
         localStorage.setItem("vplay-logged-in", "true");
+
+        // Fetch username from Firestore
+        try {
+          const userDocRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setCurrentUsername(data.username || "");
+          } else {
+            // Auto generate username for legacy users
+            const autoUsername = user.email?.split("@")[0] || "user_" + user.uid.slice(0, 5);
+            await setDoc(userDocRef, {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || autoUsername,
+              username: autoUsername,
+              friends: []
+            }, { merge: true });
+            
+            await setDoc(doc(db, "usernames", autoUsername.toLowerCase()), {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || autoUsername,
+              username: autoUsername
+            }, { merge: true });
+            setCurrentUsername(autoUsername);
+          }
+        } catch (err) {
+          console.error("Error loading user profile from Firestore:", err);
+        }
       } else {
         setCurrentUser(null);
         setIsLoggedIn(false);
         setDisplayName("");
-        setPhotoURL("");
+        setCurrentUsername("");
+        setFriendsList([]);
         localStorage.setItem("vplay-logged-in", "false");
       }
     });
     return () => unsubscribe();
   }, []);
+
+  // Listen to friends list updates in real-time
+  useEffect(() => {
+    if (!currentUser) return;
+    const userDocRef = doc(db, "users", currentUser.uid);
+    const unsub = onSnapshot(userDocRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setFriendsList(data.friends || []);
+        if (data.username) {
+          setCurrentUsername(data.username);
+        }
+      }
+    }, (err) => {
+      console.error("Firestore onSnapshot error:", err);
+    });
+    return () => unsub();
+  }, [currentUser]);
 
   // Firebase Auth functions
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -292,8 +367,32 @@ export default function App() {
     setAuthError(null);
     try {
       const target = e.target as any;
-      const email = target.email.value;
+      const identity = target.loginIdentity.value.trim();
       const password = target.password.value;
+
+      if (!identity) {
+        setAuthError("Vui lòng nhập Email hoặc Tên đăng nhập.");
+        setAuthLoading(false);
+        return;
+      }
+
+      let email = identity;
+
+      // If it doesn't look like an email (no '@'), treat as username!
+      if (!identity.includes("@")) {
+        const usernameLower = identity.toLowerCase();
+        const usernameDocRef = doc(db, "usernames", usernameLower);
+        const usernameSnap = await getDoc(usernameDocRef);
+
+        if (!usernameSnap.exists()) {
+          setAuthError(`Tên đăng nhập "${identity}" không tồn tại trong hệ thống.`);
+          setAuthLoading(false);
+          return;
+        }
+
+        email = usernameSnap.data().email;
+      }
+
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
       console.error("Login error:", err);
@@ -309,18 +408,66 @@ export default function App() {
     setAuthError(null);
     try {
       const target = e.target as any;
-      const email = target.email.value;
+      const rawUsername = target.username.value.trim();
+      const name = target.displayName.value.trim();
+      let email = target.email.value.trim();
       const password = target.password.value;
-      const name = target.displayName.value;
+
+      // Validate Username
+      if (!rawUsername) {
+        setAuthError("Tên đăng nhập không được để trống.");
+        setAuthLoading(false);
+        return;
+      }
+
+      const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+      if (!usernameRegex.test(rawUsername)) {
+        setAuthError("Tên đăng nhập phải từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới.");
+        setAuthLoading(false);
+        return;
+      }
+
+      const usernameLower = rawUsername.toLowerCase();
+
+      // Check if username already exists in Firestore
+      const usernameDocRef = doc(db, "usernames", usernameLower);
+      const usernameCheck = await getDoc(usernameDocRef);
+      if (usernameCheck.exists()) {
+        setAuthError(`Tên đăng nhập "${rawUsername}" đã được sử dụng bởi tuyển thủ khác.`);
+        setAuthLoading(false);
+        return;
+      }
+
+      // If email is empty, auto-generate one
+      if (!email) {
+        email = `${usernameLower}@vplay-user.net`;
+      }
+
       const res = await createUserWithEmailAndPassword(auth, email, password);
       if (res.user) {
-        const defaultAvatar = "https://api.dicebear.com/7.x/identicon/svg?seed=" + encodeURIComponent(email);
         await updateProfile(res.user, {
-          displayName: name,
-          photoURL: defaultAvatar
+          displayName: name
         });
+
+        // Save records to Firestore
+        const userDocRef = doc(db, "users", res.user.uid);
+        await setDoc(userDocRef, {
+          uid: res.user.uid,
+          email: email,
+          displayName: name,
+          username: rawUsername,
+          friends: []
+        }, { merge: true });
+
+        await setDoc(doc(db, "usernames", usernameLower), {
+          uid: res.user.uid,
+          email: email,
+          displayName: name,
+          username: rawUsername
+        }, { merge: true });
+
         setDisplayName(name);
-        setPhotoURL(defaultAvatar);
+        setCurrentUsername(rawUsername);
         setIsRegistering(false);
       }
     } catch (err: any) {
@@ -338,15 +485,121 @@ export default function App() {
     setAuthError(null);
     try {
       await updateProfile(auth.currentUser, {
-        displayName: displayName,
-        photoURL: photoURL
+        displayName: displayName
       });
+      
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(userDocRef, {
+        displayName: displayName
+      });
+      
+      if (currentUsername) {
+        const usernameDocRef = doc(db, "usernames", currentUsername.toLowerCase());
+        await updateDoc(usernameDocRef, {
+          displayName: displayName
+        });
+      }
       alert("Cập nhật thông tin hồ sơ thành công!");
     } catch (err: any) {
       console.error("Profile update error:", err);
       setAuthError("Không thể cập nhật hồ sơ vạn lỗi. Thử lại sau.");
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const handleAddFriend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    if (!friendInput.trim()) return;
+
+    setFriendActionLoading(true);
+    setFriendActionError(null);
+    setFriendActionSuccess(null);
+
+    const targetUsername = friendInput.trim().toLowerCase();
+
+    // Prevent adding self
+    if (targetUsername === currentUsername.toLowerCase()) {
+      setFriendActionError("Không thể tự kết bạn với chính mình.");
+      setFriendActionLoading(false);
+      return;
+    }
+
+    try {
+      // Look up target username in /usernames/{targetUsername}
+      const usernameDocRef = doc(db, "usernames", targetUsername);
+      const usernameSnap = await getDoc(usernameDocRef);
+
+      if (!usernameSnap.exists()) {
+        setFriendActionError(`Không tìm thấy người dùng có tên đăng nhập "${friendInput}".`);
+        setFriendActionLoading(false);
+        return;
+      }
+
+      const targetData = usernameSnap.data();
+      const targetUid = targetData.uid;
+      const targetDisplayName = targetData.displayName || targetData.username;
+      const targetOrgUsername = targetData.username;
+
+      // Check if already friends
+      const alreadyFriends = friendsList.some(item => item.uid === targetUid);
+      if (alreadyFriends) {
+        setFriendActionError(`Bạn và "${targetOrgUsername}" đã là bạn bè rồi.`);
+        setFriendActionLoading(false);
+        return;
+      }
+
+      // Add as friend for both users!
+      const myUserDocRef = doc(db, "users", currentUser.uid);
+      await updateDoc(myUserDocRef, {
+        friends: arrayUnion({
+          uid: targetUid,
+          displayName: targetDisplayName,
+          username: targetOrgUsername
+        })
+      });
+
+      const targetUserDocRef = doc(db, "users", targetUid);
+      await updateDoc(targetUserDocRef, {
+        friends: arrayUnion({
+          uid: currentUser.uid,
+          displayName: displayName || currentUsername,
+          username: currentUsername
+        })
+      });
+
+      setFriendActionSuccess(`Đã kết bạn thành công với "${targetOrgUsername}"!`);
+      setFriendInput("");
+    } catch (err: any) {
+      console.error("Add friend error:", err);
+      setFriendActionError("Đã xảy ra lỗi khi thêm bạn bè. Vui lòng thử lại.");
+    } finally {
+      setFriendActionLoading(false);
+    }
+  };
+
+  const handleRemoveFriend = async (friend: { uid: string; displayName: string; username: string }) => {
+    if (!currentUser) return;
+    if (!confirm(`Bạn có chắc muốn xóa kết bạn với ${friend.displayName} (@${friend.username})?`)) return;
+
+    try {
+      const myUserDocRef = doc(db, "users", currentUser.uid);
+      await updateDoc(myUserDocRef, {
+        friends: arrayRemove(friend)
+      });
+
+      const targetUserDocRef = doc(db, "users", friend.uid);
+      await updateDoc(targetUserDocRef, {
+        friends: arrayRemove({
+          uid: currentUser.uid,
+          displayName: displayName || currentUsername,
+          username: currentUsername
+                })
+      });
+    } catch (err) {
+      console.error("Remove friend error:", err);
+      alert("Đã xảy ra lỗi khi xóa bạn bè. Thử lại sau.");
     }
   };
 
@@ -819,51 +1072,72 @@ export default function App() {
                       Trải nghiệm hệ thống giới thiệu thông minh. Mỗi lượt đề xuất hiển thị 3 dòng, mỗi dòng 3 ô.
                     </p>
                     
-                    <div className="overflow-hidden p-0.5">
-                      <motion.div
-                        animate={isSpinningRecommendation ? { rotate: 360, scale: 0.85, opacity: 0.2 } : { rotate: 0, scale: 1, opacity: 1 }}
-                        transition={{ duration: 1, ease: "easeInOut" }}
-                        className="grid grid-cols-3 gap-2 rounded-none"
-                      >
-                        {recommendedChannels.map((channel) => {
-                          const isPlaying = currentChannel.id === channel.id;
-                          return (
-                            <div
-                              key={channel.id}
-                              onClick={() => {
-                                if (handleSelectChannel(channel)) {
-                                  switchTab("truc-tiep");
-                                }
-                              }}
-                              className={`flex flex-col p-2.5 cursor-pointer select-none transition-all active:scale-98 rounded-none relative overflow-hidden ${
-                                isPlaying
-                                  ? "bg-blue-50/20 ring-1 ring-red-500"
-                                  : darkMode
-                                    ? "bg-[#252528] hover:bg-[#2c2c2f]"
-                                    : "bg-gray-50 hover:bg-gray-100/70"
-                              }`}
-                            >
-                              <div className={`h-11 flex items-center justify-center p-1 rounded-none bg-white ${
-                                darkMode ? "bg-opacity-5" : ""
-                              }`}>
-                                <img
-                                  src={channel.logo}
-                                  alt={channel.name}
-                                  referrerPolicy="no-referrer"
-                                  className="max-h-full max-w-full object-contain transition-all"
-                                  style={{ transform: `scale(${logoScale / 100})` }}
-                                  onError={(e) => {
-                                    e.currentTarget.src = "https://images.unsplash.com/photo-1542204172-e7052809a862?auto=format&fit=crop&w=120&q=80";
+                    <div className="relative min-h-[260px] flex items-center justify-center p-0.5">
+                      <AnimatePresence mode="wait">
+                        {isSpinningRecommendation ? (
+                          <motion.div
+                            key="loading"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex flex-col items-center justify-center gap-3 py-12"
+                          >
+                            <Loader2 className="w-10 h-10 text-[#1a73e8] animate-spin" />
+                            <span className={`text-[10px] font-bold tracking-wider uppercase font-sans ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              ĐANG LÀM MỚI ĐỀ XUẤT...
+                            </span>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="grid"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full grid grid-cols-3 gap-2 rounded-none"
+                          >
+                            {recommendedChannels.map((channel) => {
+                              const isPlaying = currentChannel.id === channel.id;
+                              return (
+                                <div
+                                  key={channel.id}
+                                  onClick={() => {
+                                    if (handleSelectChannel(channel)) {
+                                      switchTab("truc-tiep");
+                                    }
                                   }}
-                                />
-                              </div>
-                              <div className="mt-2 min-w-0 text-center">
-                                <p className="text-[10px] font-bold truncate tracking-tight">{channel.name}</p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </motion.div>
+                                  className={`flex flex-col p-2.5 cursor-pointer select-none transition-all active:scale-98 rounded-none relative overflow-hidden ${
+                                    isPlaying
+                                      ? "bg-blue-50/20 ring-1 ring-red-500"
+                                      : darkMode
+                                        ? "bg-[#252528] hover:bg-[#2c2c2f]"
+                                        : "bg-gray-50 hover:bg-gray-100/70"
+                                  }`}
+                                >
+                                  <div className={`h-11 flex items-center justify-center p-1 rounded-none bg-white ${
+                                    darkMode ? "bg-opacity-5" : ""
+                                  }`}>
+                                    <img
+                                      src={channel.logo}
+                                      alt={channel.name}
+                                      referrerPolicy="no-referrer"
+                                      className="max-h-full max-w-full object-contain transition-all"
+                                      style={{ transform: `scale(${logoScale / 100})` }}
+                                      onError={(e) => {
+                                        e.currentTarget.src = "https://images.unsplash.com/photo-1542204172-e7052809a862?auto=format&fit=crop&w=120&q=80";
+                                      }}
+                                    />
+                                  </div>
+                                  <div className="mt-2 min-w-0 text-center">
+                                    <p className="text-[10px] font-bold truncate tracking-tight">{channel.name}</p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 ) : (
@@ -1257,148 +1531,227 @@ export default function App() {
               darkMode ? "bg-[#1e1e21] border-white/5" : "bg-white border-gray-200"
             }`}>
               {isLoggedIn ? (
-                <div className="space-y-5">
-                  <div className="text-center mb-4">
-                    <h3 className={`text-base font-bold tracking-tight mt-1 ${darkMode ? "text-white" : "text-gray-900"}`}>
-                      Thông tin hồ sơ
-                    </h3>
-                    <p className={`text-[10px] mt-1.5 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                      Tùy chỉnh thông tin người dùng và ảnh đại diện trên thiết bị.
-                    </p>
-                  </div>
+                <div className="space-y-6">
+                  {/* Grid Layout for responsive columns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    
+                    {/* Column 1: Profile Info */}
+                    <div className={`p-5 border rounded-none text-left ${darkMode ? "bg-[#18181b] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="text-center mb-5">
+                        <h3 className={`text-xs font-bold tracking-tight uppercase ${darkMode ? "text-[#1a73e8]" : "text-[#1557b0]"}`}>
+                          Thông tin hồ sơ
+                        </h3>
+                        <p className={`text-[10px] mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          Xem thông tin tài khoản và cập nhật tên hiển thị của bạn.
+                        </p>
+                      </div>
 
-                  {/* Large Avatar preview */}
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 bg-gray-100 dark:bg-black/40 border border-gray-200 dark:border-white/10 p-1 flex items-center justify-center mb-3">
-                      {photoURL ? (
-                        <img 
-                          src={photoURL} 
-                          alt="Large preview avatar" 
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-8 h-8 text-gray-400" />
-                      )}
-                    </div>
-                  </div>
+                      {/* Large Default Avatar representation */}
+                      <div className="flex flex-col items-center justify-center mb-5">
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-2 border ${
+                          darkMode ? "bg-[#27272a] border-white/10 text-[#1a73e8]" : "bg-gray-200 border-gray-300 text-[#1557b0]"
+                        }`}>
+                          <User className="w-7 h-7" />
+                        </div>
+                        <p className={`text-xs font-bold font-mono tracking-wide ${darkMode ? "text-gray-300" : "text-gray-700"}`}>
+                          @{currentUsername || "chưa_đặt"}
+                        </p>
+                        <span className="text-[9px] uppercase font-sans font-semibold tracking-wider px-2 py-0.5 bg-[#1a73e8]/10 text-[#1a73e8] mt-1">
+                          Thành viên Vplay
+                        </span>
+                      </div>
 
-                  <form onSubmit={handleSaveProfile} className="space-y-4">
-                    {/* Avatar Preset Grid Selector */}
-                    <div>
-                      <label className={`block text-[10px] font-bold mb-2 uppercase tracking-wider ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}>
-                        Chọn ảnh đại diện có sẵn
-                      </label>
-                      <div className="grid grid-cols-6 gap-1.5">
-                        {[
-                          "https://api.dicebear.com/7.x/identicon/svg?seed=vplay-blue",
-                          "https://api.dicebear.com/7.x/identicon/svg?seed=vplay-green",
-                          "https://api.dicebear.com/7.x/identicon/svg?seed=vplay-orange",
-                          "https://api.dicebear.com/7.x/bottts/svg?seed=vplay-robo1",
-                          "https://api.dicebear.com/7.x/bottts/svg?seed=vplay-robo2",
-                          "https://api.dicebear.com/7.x/shapes/svg?seed=vplay-art1"
-                        ].map((preset, i) => (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => setPhotoURL(preset)}
-                            className={`aspect-square p-1 border cursor-pointer transition-all ${
-                              photoURL === preset 
-                                ? "border-[#1a73e8] bg-[#1a73e8]/10" 
-                                : "border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5"
+                      <form onSubmit={handleSaveProfile} className="space-y-4">
+                        {/* Readonly Username */}
+                        <div>
+                          <label className={`block text-[10px] font-bold mb-1 uppercase tracking-wider ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}>
+                            Tên đăng nhập (username)
+                          </label>
+                          <input
+                            type="text"
+                            disabled
+                            value={currentUsername ? `@${currentUsername}` : ""}
+                            className={`w-full p-2.5 text-xs rounded-none border opacity-70 select-none outline-none font-mono ${
+                              darkMode 
+                                ? "bg-[#121212] border-white/10 text-gray-400" 
+                                : "bg-gray-100 border-gray-300 text-gray-500"
                             }`}
+                          />
+                        </div>
+
+                        {/* Readonly Email */}
+                        <div>
+                          <label className={`block text-[10px] font-bold mb-1 uppercase tracking-wider ${
+                            darkMode ? "text-gray-400" : "text-gray-600"
+                          }`}>
+                            Email liên kết
+                          </label>
+                          <input
+                            type="text"
+                            disabled
+                            value={currentUser?.email || ""}
+                            className={`w-full p-2.5 text-xs rounded-none border opacity-70 select-none outline-none ${
+                              darkMode 
+                                ? "bg-[#121212] border-white/10 text-gray-400" 
+                                : "bg-gray-100 border-gray-300 text-gray-500"
+                            }`}
+                          />
+                        </div>
+
+                        {/* Editable display name */}
+                        <div>
+                          <label className={`block text-[10px] font-bold mb-1 uppercase tracking-wider ${
+                            darkMode ? "text-gray-300" : "text-gray-600"
+                          }`}>
+                            Tên hiển thị
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder="Nhập tên của bạn"
+                            className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
+                              darkMode 
+                                ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
+                                : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                            }`}
+                          />
+                        </div>
+
+                        {authError && (
+                          <p className="text-red-500 text-[10px] font-semibold text-center">{authError}</p>
+                        )}
+
+                        <div className="pt-2 space-y-2">
+                          <button
+                            type="submit"
+                            disabled={authLoading}
+                            className="w-full py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[11px] font-bold uppercase tracking-wider rounded-none cursor-pointer transition-all shadow-sm disabled:opacity-50"
                           >
-                            <img src={preset} alt={`Preset ${i}`} className="w-full h-full object-cover" />
+                            {authLoading ? "Đang xử lý..." : "Lưu thay đổi"}
                           </button>
-                        ))}
+
+                          <button
+                            type="button"
+                            onClick={handleLogout}
+                            disabled={authLoading}
+                            className="w-full py-2 bg-red-600/95 hover:bg-red-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-none cursor-pointer transition-all shadow-sm disabled:opacity-50"
+                          >
+                            Đăng xuất tài khoản
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* Column 2: Friends Management */}
+                    <div className={`p-5 border rounded-none text-left ${darkMode ? "bg-[#18181b] border-white/5" : "bg-gray-50 border-gray-200"}`}>
+                      <div className="text-center mb-4">
+                        <h3 className={`text-xs font-bold tracking-tight uppercase flex items-center justify-center gap-1.5 ${darkMode ? "text-[#1a73e8]" : "text-[#1557b0]"}`}>
+                          <Users className="w-4 h-4" /> Bạn bè trên Vplay
+                        </h3>
+                        <p className={`text-[10px] mt-1 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                          Kết nối, kết bạn với tuyển thủ bằng tên đăng nhập vplay.
+                        </p>
+                      </div>
+
+                      {/* Add Friend Form */}
+                      <form onSubmit={handleAddFriend} className="space-y-3 mb-6">
+                        <div>
+                          <div className="flex gap-2">
+                            <div className="relative flex-grow">
+                              <span className="absolute left-3 top-2.5 text-xs text-gray-500 font-mono">@</span>
+                              <input
+                                type="text"
+                                name="friendInput"
+                                value={friendInput}
+                                onChange={(e) => setFriendInput(e.target.value)}
+                                placeholder="nhập username tuyển thủ..."
+                                className={`w-full pl-7 pr-3 py-2 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] font-mono ${
+                                  darkMode 
+                                    ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
+                                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                                }`}
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              disabled={friendActionLoading || !friendInput.trim()}
+                              className="px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[11px] font-bold uppercase tracking-wider rounded-none cursor-pointer transition-all disabled:opacity-40 font-sans"
+                            >
+                              Kết bạn
+                            </button>
+                          </div>
+                          
+                          {friendActionError && (
+                            <p className="text-red-500 text-[9px] font-semibold mt-1.5 flex items-center gap-1 justify-start">
+                              <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                              {friendActionError}
+                            </p>
+                          )}
+                          {friendActionSuccess && (
+                            <p className="text-green-500 text-[9px] font-semibold mt-1.5 flex items-center gap-1 justify-start">
+                              <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                              {friendActionSuccess}
+                            </p>
+                          )}
+                        </div>
+                      </form>
+
+                      {/* Friends list title */}
+                      <div className="border-b border-gray-200 dark:border-white/10 pb-1.5 mb-2.5 flex justify-between items-center">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+                          Danh sách bạn bè ({friendsList.length})
+                        </span>
+                      </div>
+
+                      {/* Friends scrollable container */}
+                      <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        {friendsList.length === 0 ? (
+                          <div className={`p-4 text-center text-xs opacity-70 italic ${darkMode ? "text-gray-400" : "text-gray-700"}`}>
+                            Chưa có tuyển thủ nào trong danh sách bạn bè.
+                          </div>
+                        ) : (
+                          friendsList.map((friend) => (
+                            <div 
+                              key={friend.uid}
+                              className={`flex items-center justify-between p-2.5 border rounded-none ${
+                                darkMode 
+                                  ? "bg-[#121212] border-white/5 hover:bg-[#252528]" 
+                                  : "bg-white border-gray-150 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${
+                                  darkMode ? "bg-[#27272a] border-white/10 text-[#1a73e8]" : "bg-gray-100 border-gray-200 text-[#1557b0]"
+                                }`}>
+                                  <User className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0 text-left">
+                                  <p className={`text-xs font-bold truncate ${darkMode ? "text-white" : "text-gray-800"}`}>
+                                    {friend.displayName}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500 font-mono truncate">
+                                    @{friend.username}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFriend(friend)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                                title="Hủy kết bạn"
+                              >
+                                <UserMinus className="w-4 h-4" strokeWidth={2.5} />
+                              </button>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
-
-                    {/* Custom photoURL Input */}
-                    <div>
-                      <label className={`block text-[10px] font-bold mb-1.5 uppercase tracking-wider ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}>
-                        Hoặc nhập URL ảnh đại diện tùy chỉnh
-                      </label>
-                      <input
-                        type="text"
-                        value={photoURL}
-                        onChange={(e) => setPhotoURL(e.target.value)}
-                        placeholder="https://example.com/avatar.png"
-                        className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
-                          darkMode 
-                            ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                            : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
-                        }`}
-                      />
-                    </div>
-
-                    {/* Readonly Email */}
-                    <div>
-                      <label className={`block text-[10px] font-bold mb-1.5 uppercase tracking-wider ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}>
-                        Email liên kết
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={currentUser?.email || ""}
-                        className={`w-full p-2.5 text-xs rounded-none border opacity-60 select-none outline-none ${
-                          darkMode 
-                            ? "bg-[#252528] border-white/15 text-gray-400" 
-                            : "bg-gray-100 border-gray-300 text-gray-500"
-                        }`}
-                      />
-                    </div>
-
-                    {/* Editable display name */}
-                    <div>
-                      <label className={`block text-[10px] font-bold mb-1.5 uppercase tracking-wider ${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}>
-                        Tên hiển thị
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="Nhập tên của bạn"
-                        className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
-                          darkMode 
-                            ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                            : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
-                        }`}
-                      />
-                    </div>
-
-                    {authError && (
-                      <p className="text-red-500 text-[10px] font-semibold text-center">{authError}</p>
-                    )}
-
-                    <div className="pt-2 space-y-2">
-                      <button
-                        type="submit"
-                        disabled={authLoading}
-                        className="w-full py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[11px] font-bold uppercase tracking-wider rounded-none cursor-pointer transition-all shadow-sm disabled:opacity-50"
-                      >
-                        {authLoading ? "Đang xử lý..." : "Lưu thay đổi"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        disabled={authLoading}
-                        className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold uppercase tracking-wider rounded-none cursor-pointer transition-all shadow-sm disabled:opacity-50"
-                      >
-                        Đăng xuất tài khoản
-                      </button>
-                    </div>
-                  </form>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -1414,7 +1767,7 @@ export default function App() {
                   </div>
 
                   {isRegistering ? (
-                    <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                    <form onSubmit={handleRegisterSubmit} className="space-y-4 text-left">
                       <div>
                         <label className={`block text-xs font-bold mb-1.5 ${
                           darkMode ? "text-gray-300" : "text-gray-600"
@@ -1429,7 +1782,7 @@ export default function App() {
                           className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
                             darkMode 
                               ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                              : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                           }`}
                         />
                       </div>
@@ -1438,17 +1791,38 @@ export default function App() {
                         <label className={`block text-xs font-bold mb-1.5 ${
                           darkMode ? "text-gray-300" : "text-gray-600"
                         }`}>
-                          Địa chỉ Email
+                          Tên đăng nhập (username)
                         </label>
+                        <input
+                          type="text"
+                          name="username"
+                          required
+                          placeholder="vietnam123"
+                          className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] font-mono ${
+                            darkMode 
+                              ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1.5">
+                          <label className={`block text-xs font-bold ${
+                            darkMode ? "text-gray-300" : "text-gray-600"
+                          }`}>
+                            Địa chỉ Email
+                          </label>
+                          <span className="text-[9px] text-[#1a73e8] font-bold tracking-wide uppercase">Tùy chọn</span>
+                        </div>
                         <input
                           type="email"
                           name="email"
-                          required
-                          placeholder="example@vplay.vn"
+                          placeholder="example@vplay.vn (Để trống tự tạo)"
                           className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
                             darkMode 
                               ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                              : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                           }`}
                         />
                       </div>
@@ -1467,7 +1841,7 @@ export default function App() {
                           className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
                             darkMode 
                               ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                              : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                           }`}
                         />
                       </div>
@@ -1500,22 +1874,22 @@ export default function App() {
                       </div>
                     </form>
                   ) : (
-                    <form onSubmit={handleLoginSubmit} className="space-y-4">
+                    <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
                       <div>
                         <label className={`block text-xs font-bold mb-1.5 ${
                           darkMode ? "text-gray-300" : "text-gray-600"
                         }`}>
-                          Địa chỉ Email
+                          Tên đăng nhập hoặc Email
                         </label>
                         <input
-                          type="email"
-                          name="email"
+                          type="text"
+                          name="loginIdentity"
                           required
-                          placeholder="example@vplay.vn"
+                          placeholder="Nhập email hoặc username..."
                           className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
                             darkMode 
                               ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                              : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                           }`}
                         />
                       </div>
@@ -1534,7 +1908,7 @@ export default function App() {
                           className={`w-full p-2.5 text-xs rounded-none border focus:outline-none focus:border-[#1a73e8] ${
                             darkMode 
                               ? "bg-[#121212] border-white/10 text-white placeholder-gray-600" 
-                              : "bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400"
+                              : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
                           }`}
                         />
                       </div>
@@ -1779,16 +2153,7 @@ export default function App() {
                 : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium"
             } ${animationPreviewEnabled ? "hover:scale-[1.12] active:scale-90 duration-200" : ""}`}
           >
-            {isLoggedIn && photoURL ? (
-              <img 
-                src={photoURL} 
-                alt="Avatar"
-                referrerPolicy="no-referrer"
-                className="w-[18px] h-[18px] mb-1 object-cover border border-[#1a73e8]"
-              />
-            ) : (
-              <User className="w-[18px] h-[18px] mb-1" strokeLinecap="square" strokeLinejoin="miter" />
-            )}
+            <User className="w-[18px] h-[18px] mb-1" strokeLinecap="square" strokeLinejoin="miter" />
             <span className="text-[10px] tracking-tight truncate">
               {isLoggedIn ? "Profile" : "Sign in"}
             </span>

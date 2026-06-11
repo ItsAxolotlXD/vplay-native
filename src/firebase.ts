@@ -9,6 +9,20 @@ import {
   type User
 } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  updateDoc, 
+  arrayUnion, 
+  arrayRemove,
+  onSnapshot
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCTWyzo2jC3vMhcyvGPIr4dygvzGf9Qtuc",
@@ -33,6 +47,8 @@ try {
 }
 
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+
 export { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -40,5 +56,16 @@ export {
   updateProfile, 
   onAuthStateChanged,
   type User,
-  analytics
+  analytics,
+  doc,
+  setDoc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  onSnapshot
 };
