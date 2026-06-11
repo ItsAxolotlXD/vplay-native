@@ -19,6 +19,7 @@ interface ChannelListProps {
   darkMode: boolean;
   columnsCount?: number;
   logoScale?: number;
+  animationPreviewEnabled?: boolean;
 }
 
 export default function ChannelList({
@@ -30,7 +31,8 @@ export default function ChannelList({
   setSelectedSubTab,
   darkMode,
   columnsCount = 3,
-  logoScale = 100
+  logoScale = 100,
+  animationPreviewEnabled = false
 }: ChannelListProps) {
   // Filter channels according to search
   const filteredChannels = channels.filter((ch) => {
@@ -68,14 +70,18 @@ export default function ChannelList({
                 key={channel.id}
                 onClick={() => onSelectChannel(channel)}
                 title={channel.name} // Native tooltip on hover keeps identifier fully search-friendly/discoverable
-                className={`relative aspect-[16/10] flex items-center justify-center p-2 cursor-pointer transition-all rounded-none border group overflow-hidden ${
+                className={`relative aspect-[16/10] flex items-center justify-center p-2 cursor-pointer rounded-none group overflow-hidden ${
                   isPlaying 
                     ? darkMode
-                      ? "bg-[#28282c] border-[#1a73e8] ring-1 ring-[#1a73e8]"
-                      : "bg-gray-50 border-[#1a73e8] ring-1 ring-[#1a73e8]" 
+                      ? "bg-[#28282c] ring-1 ring-[#1a73e8]"
+                      : "bg-gray-50 ring-1 ring-[#1a73e8]" 
                     : darkMode
-                      ? "bg-[#1e1e21] border-white/5 hover:border-white/10 hover:bg-[#252529]"
-                      : "bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
+                      ? "bg-[#1e1e21] hover:bg-[#252529]"
+                      : "bg-white hover:bg-gray-50/50"
+                } ${
+                  animationPreviewEnabled 
+                    ? "transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 active:scale-95 hover:shadow-lg" 
+                    : "transition-none"
                 }`}
                 id={`chan-rect-${channel.id}`}
               >

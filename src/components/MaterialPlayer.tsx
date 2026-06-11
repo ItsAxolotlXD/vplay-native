@@ -21,9 +21,10 @@ import { Channel } from "../channelsData";
 interface MaterialPlayerProps {
   currentChannel: Channel;
   themeColor: string;
+  playbackQuality?: string;
 }
 
-export default function MaterialPlayer({ currentChannel, themeColor }: MaterialPlayerProps) {
+export default function MaterialPlayer({ currentChannel, themeColor, playbackQuality = "720p" }: MaterialPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -269,6 +270,13 @@ export default function MaterialPlayer({ currentChannel, themeColor }: MaterialP
           }}
           playsInline
         />
+
+        {/* Playback Quality HUD Badge */}
+        {!loading && !errorMsg && (
+          <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 pointer-events-none rounded-none border border-white/10 uppercase" id="player-quality-badge">
+            {playbackQuality}
+          </div>
+        )}
 
         {/* Video Overlays (Loading & Error States) */}
         {loading && (
