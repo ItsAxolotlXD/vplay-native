@@ -218,22 +218,22 @@ export const CHANNELS_DATA: Channel[] = [
   },
   {
     id: "on-kids-hd",
-    name: "ON Kids HD",
-    logo: "https://img.vtvprime.vn/L7ERumqY3GEtK8vTe_DtMEJRYJkZPrVD3O4cbdT5P44/rs:fit:836:468/czM6Ly9wcmQtc24taW1hZ2VzL2NoYW5uZWwvOGFlYmUzZGMtODZmYS00NGFkLTlhNzUtODg5NmFkODZhNGI3LnBuZw==.png",
+    name: "Cartoon Kids HD",
+    logo: "https://static.wikia.nocookie.net/logos/images/3/39/Cartoon_Kids_logo.png/revision/latest?cb=20201011133203&path-prefix=vi",
     group: "VTVcab",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=179"
   },
   {
     id: "on-golf-hd",
     name: "ON Golf HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/f/ff/ON_Golf_logo_2022.png/revision/latest/scale-to-width-down/1000?cb=20220311023800&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/e/e1/ON_Golf_logo.png/revision/latest/scale-to-width-down/1000?cb=20211027130404&path-prefix=vi",
     group: "VTVcab",
     url: "https://toiyeuvietnam.dpdns.org/TuyetDoiKhongKinhDoanh/vtvcab-23-golf-channel/KenhCoBan.m3u8"
   },
   {
     id: "on-e-channel-hd",
     name: "ON E- Channel HD",
-    logo: "https://img.vtvprime.vn/bofK3Lca_KQJMc9sb6pUyQ_A41aWbsQi2ibNAzkN3I0/rs:fit:836:468/czM6Ly9wcmQtc24taW1hZ2VzL2NoYW5uZWwvZTk3YjgwOGUtNjI3OS00NWQ4LWJkMTAtNWY1MGE1MjIwMTZkLnBuZw==.png",
+    logo: "https://static.wikia.nocookie.net/logos/images/6/69/ON_E_Channel_08-04-2023.png/revision/latest/scale-to-width-down/1000?cb=20231122022922&path-prefix=vi",
     group: "VTVcab",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=182"
   },
@@ -352,35 +352,35 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "ctv-hd",
     name: "CTV HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/2/22/CTV_C%C3%A0_Mau.png/revision/latest/scale-to-width-down/985?cb=20211209002856&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/a/a1/CTV_HD_C%C3%A0_Mau_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20221231094508&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=46"
   },
   {
     id: "thtpct1-hd",
-    name: "THTPCT 1 HD",
+    name: "THTPCT HD",
     logo: "https://static.wikia.nocookie.net/logos/images/7/72/THTPCT.png/revision/latest/scale-to-width-down/1000?cb=20250703032839&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=47"
   },
   {
     id: "thtpct2-hd",
-    name: "THTPCT 2 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/7/72/THTPCT.png/revision/latest/scale-to-width-down/1000?cb=20250703032839&path-prefix=vi",
+    name: "HGTV HD",
+    logo: "https://static.wikia.nocookie.net/logos/images/5/50/HGTV_HD_Hau_Giang_2022.png/revision/latest/scale-to-width-down/1000?cb=20250304062024&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=61"
   },
   {
     id: "thtpct3-hd",
-    name: "THTPCT 3 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/7/72/THTPCT.png/revision/latest/scale-to-width-down/1000?cb=20250703032839&path-prefix=vi",
+    name: "STV HD",
+    logo: "https://static.wikia.nocookie.net/logos/images/d/df/STV_HD_2018-2025_%28STV2%29.png/revision/latest/scale-to-width-down/1000?cb=20231012100425&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=84"
   },
   {
     id: "crtv-hd",
     name: "CRTV HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/8/8a/CRTV_logo_2020.png/revision/latest?cb=20260122145745&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/3/35/CRTV_2016_16-9.png/revision/latest/scale-to-width-down/1000?cb=20251116143645&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=48"
   },
@@ -401,7 +401,7 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "drt-hd",
     name: "DRT HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/4/40/DRT_logo_2015_%28Dak_Lak%29.svg/revision/latest/scale-to-width-down/1000?cb=20230203121915&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/8/8f/DRT_HD_logo_testcard_2025.png/revision/latest/scale-to-width-down/1000?cb=20250815051751&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=51"
   },
@@ -429,14 +429,14 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "thdt1-hd",
     name: "THĐT1 HD",
-    logo: "https://img-zlr1.tv360.vn/image1/2024/10/07/16/1728292788373/2f4bec83df66_640_360.png",
+    logo: "https://static.wikia.nocookie.net/logos/images/a/a9/TH%C4%90T1_slogan_2023.png/revision/latest?cb=20231126064109&path-prefix=vi",
     group: "Địa phương",
     url: "https://live.fptplay53.net/epzsd1/dongthap_vhls.smil/chunklist_b5000000.m3u8"
   },
   {
     id: "thdt2-hd",
     name: "THĐT2 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/b/b9/Mi%E1%BB%81n_T%C3%A2y_TH%C4%90T2_2019-nay.png/revision/latest?cb=20260222061031&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/f/f9/Mi%E1%BB%81n_T%C3%A2y_TH%C4%90T2_2016-2019.png/revision/latest/scale-to-width-down/1000?cb=20230801075942&path-prefix=vi",
     group: "Địa phương",
     url: "https://live.fptplay53.net/epzsd1/dongthaphd_vhls.smil/chunklist_b5000000.m3u8"
   },
@@ -477,8 +477,8 @@ export const CHANNELS_DATA: Channel[] = [
   },
   {
     id: "thp3-hd",
-    name: "THP3 HD",
-    logo: "https://haiduongtv.mediatech.vn/upload/files/logo/Logo_THP3_chuan.png",
+    name: "THD HD",
+    logo: "https://static.wikia.nocookie.net/logos/images/1/17/HDTV_HD_2019-2023.png/revision/latest/scale-to-width-down/1000?cb=20230925063103&path-prefix=vi",
     group: "Địa phương",
     url: "https://live.mediatech.vn/live/28548ca35823d41426d8b3da7ed82bdab13/chunklist.m3u8"
   },
@@ -492,7 +492,7 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "hytv-hd",
     name: "HYTV HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/3/3d/HY_HD_logo_2019.png/revision/latest/scale-to-width-down/1000?cb=20220831005900&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/9/9c/HY_HD_logo_2020.png/revision/latest/scale-to-width-down/1000?cb=20221103131120&path-prefix=vi",
     group: "Địa phương",
     url: "https://live.mediatech.vn/live/285f5449d7d7d2946e0bd2d54b7e60f25a4/chunklist.m3u8"
   },
@@ -506,14 +506,14 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "ktv1-hd",
     name: "KTV1 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/b/ba/KTV1_logo.png/revision/latest/scale-to-width-down/1000?cb=20260101114305&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/6/60/KTV1_HD_logo_01-05.07.2025.png/revision/latest/scale-to-width-down/1000?cb=20250708073336&path-prefix=vi",
     group: "Địa phương",
     url: "https://vietanhtv.id.vn/tv360/76/index.m3u8"
   },
   {
     id: "ltv-hd",
     name: "LTV HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/4/40/Logo_LTV_Lai_Ch%C3%A2u_2022_%28B%E1%BA%A3n_4%29.png/revision/latest?cb=20230614141136&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/0/05/LTV_HD_Lai_Ch%C3%A2u_logo_06-06-2022_%28ph%C3%A1t_tr%C3%AAn_v%E1%BB%87_tinh%2C_c%C3%B3_website%29.png/revision/latest/scale-to-width-down/1000?cb=20240501091834&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=68"
   },
@@ -562,35 +562,35 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "ptv-hd",
     name: "PTV HD",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Logo_%C4%90%C3%A0i_Ph%C3%A1t_thanh_%26_Truy%E1%BB%81n_h%C3%ACnh_Ph%C3%BA_Th%E1%BB%8D_-_PTV.svg/1280px-Logo_%C4%90%C3%A0i_Ph%C3%A1t_thanh_%26_Truy%E1%BB%81n_h%C3%ACnh_Ph%C3%BA_Th%E1%BB%8D_-_PTV.svg.png",
+    logo: "https://static.wikia.nocookie.net/logos/images/7/76/PTV_HD_logo_2020.png/revision/latest?cb=20251112120133&path-prefix=vi",
     group: "Địa phương",
     url: "https://live.fptplay53.net/fnxsd1/phutho_hls.smil/chunklist.m3u8"
   },
   {
     id: "qngtv1-hd",
     name: "QNgTV1 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/e/e5/QNgTV_logo_2025_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20250823105757&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/9/91/QNgTV_2025_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20250823105253&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=81"
   },
   {
     id: "qngtv2-hd",
     name: "QNgTV2 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/e/e5/QNgTV_logo_2025_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20250823105757&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/9/91/QNgTV_2025_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20250823105253&path-prefix=vi",
     group: "Địa phương",
     url: "https://ace.hoiquan.click/module/IPTV/?id=QNgTV2&accKenh=vuminhthanh1"
   },
   {
     id: "qtv1-hd",
     name: "QTV1 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/a/a9/QTV1.png/revision/latest?cb=20230527102010&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/a/a8/QTV_HD.png/revision/latest/scale-to-width-down/1000?cb=20230527082413&path-prefix=vi",
     group: "Địa phương",
     url: "https://Baoquangninh.vn/qtvlive/tv1live.m3u8"
   },
   {
     id: "qtv3-hd",
     name: "QTV3 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/9/96/QTV3_logo_2014.png/revision/latest?cb=20230527102031&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/1/19/QTV3_HD_b%E1%BA%A3n_2.png/revision/latest/scale-to-width-down/1000?cb=20231028035725&path-prefix=vi",
     group: "Địa phương",
     url: "https://Baoquangninh.vn/qtvlive/tv3live.m3u8"
   },
@@ -625,7 +625,7 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "thanhhoa-ttv-hd",
     name: "Thanh Hoá (TTV) HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/a/ad/Logo_TTV_Thanh_H%C3%B3a_2017_%28B%E1%BA%A3n_2%29.png/revision/latest/scale-to-width-down/1000?cb=20220727083250&path-prefix=vi",
+    logo: "https://static.wikia.nocookie.net/logos/images/a/af/Logo_TTV_Thanh_H%C3%B3a_13-10-2025_%28c%C3%B3_website%2C_B%E1%BA%A3n_1%29.png/revision/latest/scale-to-width-down/1000?cb=20251014112802&path-prefix=vi",
     group: "Địa phương",
     url: "https://freem3u.xyz/api/live/play.m3u8?vid=89"
   },
@@ -674,7 +674,7 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "antv-hd",
     name: "Truyền hình Công an Nhân dân (ANTV) HD",
-    logo: "https://img-zlr1.tv360.vn/image1/2020_09_23/1600822516608/b33963dc0df8_640_360.png",
+    logo: "https://static.wikia.nocookie.net/logos/images/b/b8/ANTV_HD_logo_2018.png/revision/latest/scale-to-width-down/1000?cb=20240922115604&path-prefix=vi",
     group: "Thiết yếu",
     url: "https://live.fptplay53.net/fnxhd2/anninhtv_vhls.smil/chunklist_b5000000.m3u8"
   },

@@ -213,9 +213,9 @@ export default function App() {
   const [logoScale, setLogoScale] = useState<number>(() => {
     try {
       const saved = localStorage.getItem("vplay-logo-scale");
-      return saved !== null ? Number(saved) : 100;
+      return saved !== null ? Number(saved) : 70;
     } catch {
-      return 100;
+      return 70;
     }
   });
 
@@ -361,6 +361,69 @@ export default function App() {
   }, [currentUser]);
 
   // Firebase Auth functions
+  const handleTestAccountLogin = async () => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const testEmail = "vplayandroid@vplay-user.net";
+      const testUsername = "vplayandroid";
+      const testPassword = "abc123";
+      
+      try {
+        await signInWithEmailAndPassword(auth, testEmail, testPassword);
+      } catch (signInErr: any) {
+        if (
+          signInErr.code === "auth/user-not-found" || 
+          signInErr.code === "auth/invalid-credential" || 
+          signInErr.code === "auth/wrong-password" ||
+          signInErr.message?.includes("USER_NOT_FOUND") ||
+          signInErr.message?.includes("INVALID_LOGIN_CREDENTIALS")
+        ) {
+          // Auto create test account in Firebase & Firestore!
+          try {
+            const res = await createUserWithEmailAndPassword(auth, testEmail, testPassword);
+            if (res.user) {
+              await updateProfile(res.user, {
+                displayName: "Tuyển thủ Vplay Thử nghiệm"
+              });
+              
+              // Save records to Firestore
+              const userDocRef = doc(db, "users", res.user.uid);
+              await setDoc(userDocRef, {
+                uid: res.user.uid,
+                email: testEmail,
+                displayName: "Tuyển thủ Vplay Thử nghiệm",
+                username: testUsername,
+                friends: []
+              }, { merge: true });
+
+              await setDoc(doc(db, "usernames", testUsername), {
+                uid: res.user.uid,
+                email: testEmail,
+                displayName: "Tuyển thủ Vplay Thử nghiệm",
+                username: testUsername
+              }, { merge: true });
+
+              setDisplayName("Tuyển thủ Vplay Thử nghiệm");
+              setCurrentUsername(testUsername);
+            }
+          } catch (regErr) {
+            console.error("Auto registration of test account failed:", regErr);
+            // Fallback: try signin one last time
+            await signInWithEmailAndPassword(auth, testEmail, testPassword);
+          }
+        } else {
+          throw signInErr;
+        }
+      }
+    } catch (err: any) {
+      console.error("Login test account error:", err);
+      setAuthError(translateAuthError(err.code));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthLoading(true);
@@ -373,6 +436,12 @@ export default function App() {
       if (!identity) {
         setAuthError("Vui lòng nhập Email hoặc Tên đăng nhập.");
         setAuthLoading(false);
+        return;
+      }
+
+      // Intercept special test account
+      if (identity.toLowerCase() === "vplayandroid" && password === "abc123") {
+        await handleTestAccountLogin();
         return;
       }
 
@@ -1875,6 +1944,41 @@ export default function App() {
                     </form>
                   ) : (
                     <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+                      {/* Premium Test Account Quick Entry banner */}
+                      <div className={`p-3 border rounded-none text-left mb-2 transition-all ${
+                        darkMode 
+                          ? "bg-[#1a73e8]/10 border-[#1a73e8]/30" 
+                          : "bg-blue-50/70 border-blue-200"
+                      }`}>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-bold tracking-wider uppercase font-sans ${
+                            darkMode ? "text-[#1a73e8]" : "text-[#1557b0]"
+                          }`}>
+                            Tài khoản thử nghiệm (Full access)
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.5 font-bold uppercase tracking-wider bg-green-500/10 text-green-500">
+                            BETA
+                          </span>
+                        </div>
+                        <p className={`text-[10px] mt-1 font-mono leading-relaxed ${
+                          darkMode ? "text-gray-300" : "text-gray-600"
+                        }`}>
+                          Tên đăng nhập: <strong className="select-all text-[#1a73e8]">vplayandroid</strong><br />
+                          Mật khẩu: <strong className="select-all text-[#1a73e8]">abc123</strong>
+                        </p>
+                        <div className="mt-2 text-right">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await handleTestAccountLogin();
+                            }}
+                            className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer active:scale-95 transition-all"
+                          >
+                            Đăng nhập nhanh
+                          </button>
+                        </div>
+                      </div>
+
                       <div>
                         <label className={`block text-xs font-bold mb-1.5 ${
                           darkMode ? "text-gray-300" : "text-gray-600"
