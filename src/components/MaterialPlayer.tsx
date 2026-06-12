@@ -22,9 +22,10 @@ interface MaterialPlayerProps {
   currentChannel: Channel;
   themeColor: string;
   playbackQuality?: string;
+  roundedCornersEnabled?: boolean;
 }
 
-export default function MaterialPlayer({ currentChannel, themeColor, playbackQuality = "720p" }: MaterialPlayerProps) {
+export default function MaterialPlayer({ currentChannel, themeColor, playbackQuality = "720p", roundedCornersEnabled = false }: MaterialPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -256,7 +257,7 @@ export default function MaterialPlayer({ currentChannel, themeColor, playbackQua
       {/* Player Frame Viewport */}
       <div 
         id="vplay-player-viewport" 
-        className="relative group w-full bg-[#1c1b1f] aspect-video overflow-hidden rounded-none shadow-xl border border-white/5 flex items-center justify-center"
+        className={`relative group w-full bg-[#1c1b1f] aspect-video overflow-hidden shadow-xl border border-white/5 flex items-center justify-center ${roundedCornersEnabled ? "rounded-lg" : "rounded-none"}`}
       >
         {/* Dynamic Aspect Ratio Setup */}
         <video
@@ -273,7 +274,7 @@ export default function MaterialPlayer({ currentChannel, themeColor, playbackQua
 
         {/* Playback Quality HUD Badge */}
         {!loading && !errorMsg && (
-          <div className="absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 pointer-events-none rounded-none border border-white/10 uppercase" id="player-quality-badge">
+          <div className={`absolute top-3 right-3 bg-black/60 text-white text-[10px] font-bold tracking-wider px-2 py-0.5 pointer-events-none border border-white/10 uppercase ${roundedCornersEnabled ? "rounded-sm" : "rounded-none"}`} id="player-quality-badge">
             {playbackQuality}
           </div>
         )}
@@ -303,7 +304,7 @@ export default function MaterialPlayer({ currentChannel, themeColor, playbackQua
                 e.stopPropagation();
                 togglePlay();
               }} 
-              className={`pointer-events-auto p-4 rounded-none text-white transition-all transform hover:scale-110 active:scale-95 shadow-lg ${activeBgClass()}`}
+              className={`pointer-events-auto p-4 text-white transition-all transform hover:scale-110 active:scale-95 shadow-lg ${roundedCornersEnabled ? "rounded-full" : "rounded-none"} ${activeBgClass()}`}
               title={isPlaying ? "Tạm dừng" : "Phát"}
             >
               {isPlaying ? (
