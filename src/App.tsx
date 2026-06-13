@@ -27,7 +27,8 @@ import {
   Trash2,
   Plus,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  SlidersHorizontal
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { CHANNELS_DATA, Channel } from "./channelsData";
@@ -555,6 +556,21 @@ export default function App() {
 
   const [showRemoteUI, setShowRemoteUI] = useState(false);
   const [remoteDialDigits, setRemoteDialDigits] = useState("");
+
+  const [thickSearchEnabled, setThickSearchEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("vplay-thick-search");
+      return saved === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("vplay-thick-search", String(thickSearchEnabled));
+  }, [thickSearchEnabled]);
+
+  const [settingsSearchQuery, setSettingsSearchQuery] = useState("");
 
   const getMatchedChannelForRemote = (digits: string) => {
     if (!digits) return null;
@@ -1576,26 +1592,32 @@ export default function App() {
             animate={{ height: "auto", opacity: 1 }}
             exit={animationPreviewEnabled ? { height: 0, opacity: 0 } : undefined}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className={`border-b overflow-hidden ${darkMode ? "bg-[#18181a] border-white/5" : "bg-gray-50 border-gray-200"}`}
+            className={`sticky top-[48px] z-30 border-b overflow-hidden shadow-md transition-all duration-200 ${
+              darkMode ? "bg-[#1f1f23] border-white/5" : "bg-gray-50 border-gray-200"
+            }`}
           >
             <div className="max-w-7xl mx-auto px-3 py-2">
-              <div className={`flex items-center gap-2 px-3 py-2 border rounded-none shadow-sm ${
-                darkMode ? "bg-[#1e1e21] border-white/10 text-white" : "bg-white border-gray-300 text-gray-900"
+              <div className={`flex items-center gap-2 px-3 border rounded-none shadow-sm transition-all duration-200 ${
+                thickSearchEnabled ? "py-3.5" : "py-2"
+              } ${
+                darkMode ? "bg-[#2d2d34] border-white/10 text-white" : "bg-white border-gray-300 text-gray-900"
               }`}>
-                <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <Search className={`text-gray-400 flex-shrink-0 transition-all ${thickSearchEnabled ? "w-5 h-5" : "w-4 h-4"}`} />
                 <input
                   type="text"
                   placeholder={`Nhập để tìm kênh (VD: ${randomSearchSuggestion})`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-transparent text-xs w-full focus:outline-none font-roboto font-medium placeholder-gray-400"
+                  className={`bg-transparent w-full focus:outline-none font-roboto font-medium placeholder-gray-400 transition-all ${
+                    thickSearchEnabled ? "text-sm py-1" : "text-xs py-0"
+                  }`}
                 />
                 {searchTerm && (
                   <button 
                     onClick={() => setSearchTerm("")}
                     className="text-gray-400 hover:text-gray-550 p-0.5"
                   >
-                    <X className="w-4 h-4" />
+                    <X className={`transition-all ${thickSearchEnabled ? "w-5 h-5" : "w-4 h-4"}`} />
                   </button>
                 )}
               </div>
@@ -2172,24 +2194,30 @@ export default function App() {
             <div className={`p-5 border ${subPanelBgClass} ${darkMode ? "border-white/5" : "border-gray-200"} ${
               roundedCornersEnabled ? "rounded-lg" : "rounded-none"
             } flex flex-col gap-4 shadow-sm`}>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <input
                   type="text"
                   autoFocus
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder={`Nhập để tìm kênh (VD: ${randomSearchSuggestion})`}
-                  className={`w-full pl-10 pr-4 py-3 text-xs border bg-transparent font-sans ${
-                    darkMode ? "border-white/10 text-white focus:border-[#1a73e8]" : "border-gray-300 text-gray-900 focus:border-[#1a73e8]"
-                  } focus:outline-none ${roundedCornersEnabled ? "rounded-md" : "rounded-none"} shadow-inner`}
+                  className={`w-full border font-sans transition-all duration-200 focus:outline-none ${
+                    thickSearchEnabled ? "py-4.5 pl-12 pr-11 text-sm animate-fade-in" : "py-3 pl-10 pr-10 text-xs"
+                  } ${
+                    darkMode 
+                      ? "bg-[#2d2d34] border-white/10 text-white focus:border-[#1a73e8]" 
+                      : "bg-white border-gray-300 text-gray-900 focus:border-[#1a73e8]"
+                  } ${roundedCornersEnabled ? "rounded-md" : "rounded-none"} shadow-inner`}
                 />
-                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                <Search className={`text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 transition-all ${
+                  thickSearchEnabled ? "w-5 h-5" : "w-4 h-4"
+                }`} />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm("")}
-                    className="absolute right-3 top-3 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-all text-gray-400 hover:text-white"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className={`transition-all ${thickSearchEnabled ? "w-4.5 h-4.5" : "w-3.5 h-3.5"}`} />
                   </button>
                 )}
               </div>
@@ -2224,12 +2252,26 @@ export default function App() {
                                 switchTab("truc-tiep");
                               }
                             }}
-                            className={`p-3 border flex flex-col items-center text-center gap-2 cursor-pointer transition-all ${
+                            className={`relative p-3 border flex flex-col items-center text-center gap-2 cursor-pointer transition-all ${
                               currentChannel?.id === channel.id
                                 ? "bg-[#1a73e8]/10 border-[#1a73e8] text-[#1a73e8]"
                                 : `${darkMode ? "bg-white/5 border-white/5 hover:border-white/25" : "bg-gray-50 border-gray-200 hover:border-gray-400"}`
                             } ${roundedCornersEnabled ? "rounded-md" : "rounded-none"}`}
                           >
+                            {(() => {
+                              const globalIndex = allChannels.findIndex((c) => c.id === channel.id);
+                              if (globalIndex !== -1) {
+                                const paddedNumber = String(globalIndex + 1).padStart(3, "0");
+                                return (
+                                  <span className={`absolute top-1 left-1.5 z-20 text-[9px] font-mono font-bold tracking-tighter select-none ${
+                                    darkMode ? "text-gray-500" : "text-gray-400"
+                                  }`}>
+                                    ({paddedNumber})
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                             <div className="w-10 h-10 flex items-center justify-center bg-black/5 dark:bg-white/5 rounded-xs overflow-hidden border border-gray-200 dark:border-white/5">
                               {channel.logo ? (
                                 <img
@@ -2281,403 +2323,522 @@ export default function App() {
             transition={{ duration: 0.25, ease: "easeInOut" }}
             className="flex flex-col gap-1 rounded-none px-1 w-full"
           >
-            
-            {/* App Settings list - blended option list (no encapsulating dark boxes, direct background flow) */}
-            <div className="flex flex-col text-xs">
-              
-              {/* Option 1: Dark Mode Toggle with blue Toggle Switch as requested */}
-              <div className={`flex items-center justify-between py-4 border-b ${
-                darkMode ? "border-white/10" : "border-gray-200"
+            {/* Settings Search bar */}
+            <div className="mb-3 transition-all duration-200">
+              <div className={`flex items-center gap-2 px-3 py-2 border rounded-none shadow-sm ${
+                darkMode ? "bg-[#2d2d34] border-white/10 text-white" : "bg-white border-gray-300 text-gray-900"
               }`}>
-                <div>
-                  <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Chế độ tối</h4>
-                </div>
-                <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
-              </div>
-
-              {/* Option 2: Grid column tiles layout selector (flat rectangular selection) */}
-              <div className={`flex items-center justify-between py-4 border-b ${
-                darkMode ? "border-white/10" : "border-gray-200"
-              }`}>
-                <div>
-                  <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Số ô kênh hiển thị</h4>
-                </div>
-                <select
-                  value={columnsCount}
-                  onChange={(e) => setColumnsCount(Number(e.target.value))}
-                  className={`px-3 py-1.5 text-xs font-bold leading-tight cursor-pointer focus:outline-none border rounded-none ${
-                    darkMode 
-                      ? "bg-[#1e1e21] border-white/10 text-white hover:bg-[#252529]" 
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <option value={2}>2 ô / dòng</option>
-                  <option value={3}>3 ô / dòng</option>
-                </select>
-              </div>
-
-              {/* Option 3: Phóng to biểu tượng logo */}
-              <div className={`flex flex-col py-4 border-b gap-2 ${
-                darkMode ? "border-white/10" : "border-gray-200"
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Phóng to biểu tượng</h4>
-                  </div>
-                  <span className={`font-mono text-xs font-bold text-[#1a73e8]`}>
-                    {logoScale}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 py-1 bg-transparent">
-                  <span className="text-[10px] text-gray-400 font-mono">0</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={logoScale}
-                    onChange={(e) => setLogoScale(Number(e.target.value))}
-                    className="flex-grow accent-[#1a73e8] h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="text-[10px] text-gray-400 font-mono">100</span>
-                </div>
-              </div>
-
-              {/* Option: Chất lượng phát */}
-              <div className={`flex items-center justify-between py-4 border-b ${
-                darkMode ? "border-white/10" : "border-gray-200"
-              }`}>
-                <div>
-                  <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Chất lượng phát</h4>
-                </div>
-                <select
-                  value={playbackQuality}
-                  onChange={(e) => setPlaybackQuality(e.target.value)}
-                  className={`px-3 py-1.5 text-xs font-bold leading-tight cursor-pointer focus:outline-none border rounded-none ${
-                    darkMode 
-                      ? "bg-[#1e1e21] border-white/10 text-white hover:bg-[#252529]" 
-                      : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <option value="360p">360p</option>
-                  <option value="480p">480p</option>
-                  <option value="720p">720p</option>
-                  <option value="1080p">1080p</option>
-                </select>
-              </div>
-
-              {/* Option 4: Version Info option - blended wrapper */}
-              <div className={`flex items-center justify-between py-4 border-b ${
-                darkMode ? "border-white/10" : "border-gray-200"
-              }`}>
-                <div>
-                  <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Phiên bản ứng dụng</h4>
-                </div>
-                <span className={`font-mono text-[11px] font-bold px-2 py-1 rounded-none ${
-                  darkMode ? "bg-white/10 text-white" : "bg-gray-150 text-gray-800"
-                }`}>
-                  0.1_beta_android_native_preview
-                </span>
-              </div>
-
-              {/* Option 4: Developer settings (Cài đặt nhà phát triển) - Toggle options */}
-              <div className={`mt-6 pt-6 border-t ${
-                darkMode ? "border-white/10" : "border-gray-200"
-              }`}>
-                <h3 className="font-bold text-xs uppercase tracking-wider mb-2 text-[#1a73e8]">
-                  Cài đặt nhà phát triển
-                </h3>
-                
-                {/* Dev Option A: Hamburger Menu switch */}
-                <div className={`flex items-center justify-between py-4 border-b ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Hamburger menu</h4>
-                  </div>
-                  <ToggleSwitch checked={hamburgerEnabled} onChange={() => setHamburgerEnabled(!hamburgerEnabled)} />
-                </div>
-
-                {/* Dev Option B: Search function switch */}
-                <div className={`flex items-center justify-between py-4 border-b ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Search function</h4>
-                  </div>
-                  <ToggleSwitch checked={searchEnabled} onChange={() => setSearchEnabled(!searchEnabled)} />
-                </div>
-
-                {/* Dev Option C: Home page recommendations switch */}
-                <div className={`flex items-center justify-between py-4 border-b ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Thử nghiệm trang chủ</h4>
-                  </div>
-                  <ToggleSwitch checked={homeRecommendationEnabled} onChange={() => setHomeRecommendationEnabled(!homeRecommendationEnabled)} />
-                </div>
-
-                {/* Dev Option J: Package enabled switch */}
-                <div className={`flex items-center justify-between py-4 border-b flex-row ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Package enabled</h4>
-                  </div>
-                  <ToggleSwitch checked={packageEnabled} onChange={() => {
-                    const newVal = !packageEnabled;
-                    setPackageEnabled(newVal);
-                    if (!newVal && activeTab === "package") {
-                      switchTab("trang-chu");
-                    }
-                  }} />
-                </div>
-
-                {/* Dev Option K: Immersive search switch */}
-                <div className={`flex items-center justify-between py-4 border-b flex-row ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Immersive search</h4>
-                  </div>
-                  <ToggleSwitch checked={immersiveSearchEnabled} onChange={() => {
-                    const newVal = !immersiveSearchEnabled;
-                    setImmersiveSearchEnabled(newVal);
-                    if (!newVal && activeTab === "tim-kiem") {
-                      switchTab("trang-chu");
-                    }
-                  }} />
-                </div>
-
-                {/* Dev Option L: Experimental remote control switch */}
-                <div className={`flex items-center justify-between py-4 border-b flex-row ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Experimental remote control</h4>
-                  </div>
-                  <ToggleSwitch checked={remoteEnabled} onChange={() => setRemoteEnabled(!remoteEnabled)} />
-                </div>
-
-                {/* Dev Option D: Bottom bar mode switch */}
-                <div className={`flex items-center justify-between py-4 border-b ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Bottom bar</h4>
-                  </div>
-                  <ToggleSwitch checked={bottomBarEnabled} onChange={() => {
-                    const newVal = !bottomBarEnabled;
-                    setBottomBarEnabled(newVal);
-                    if (newVal) {
-                      setAppCrashed(true);
-                    }
-                  }} />
-                </div>
-
-                {/* Dev Option D2: Floaty bars switch */}
-                {bottomBarEnabled && (
-                  <div className={`flex items-center justify-between py-4 border-b ${
-                    darkMode ? "border-white/10" : "border-gray-200"
-                  }`}>
-                    <div>
-                      <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Floaty bars</h4>
-                      <p className={`text-[10px] ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        Làm cho thanh bottom bar nổi và bo tròn toàn bộ.
-                      </p>
-                    </div>
-                    <ToggleSwitch checked={floatyBarsEnabled} onChange={() => setFloatyBarsEnabled(!floatyBarsEnabled)} />
-                  </div>
+                <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm cài đặt... (VD: tối, dev, logo)"
+                  value={settingsSearchQuery}
+                  onChange={(e) => setSettingsSearchQuery(e.target.value)}
+                  className="bg-transparent text-xs w-full focus:outline-none placeholder-gray-400 font-sans"
+                />
+                {settingsSearchQuery && (
+                  <button 
+                    onClick={() => setSettingsSearchQuery("")}
+                    className="text-gray-400 hover:text-gray-550 p-0.5"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 )}
+              </div>
+            </div>
 
-                {/* Dev Option E: Status bar clock switch */}
-                <div className="flex items-center justify-between py-4">
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Display clock</h4>
+            {/* App Settings list - blended option list (no encapsulating dark boxes, direct background flow) */}
+            {(() => {
+              const isSettingMatchQuery = (title: string, keywords: string[] = []) => {
+                if (!settingsSearchQuery) return true;
+                const query = settingsSearchQuery.toLowerCase().trim();
+                if (!query) return true;
+                const matchTitle = title.toLowerCase().includes(query);
+                const matchKeywords = keywords.some((k) => k.toLowerCase().includes(query));
+                return matchTitle || matchKeywords;
+              };
+
+              const showDarkMode = isSettingMatchQuery("Chế độ tối", ["dark mode", "giao dien toi", "nen toi", "mau toi", "cai dat"]);
+              const showColumns = isSettingMatchQuery("Số ô kênh hiển thị", ["so o", "dong", "cot", "columns", "layout", "grid", "cai dat"]);
+              const showLogoScale = isSettingMatchQuery("Phóng to biểu tượng", ["logo", "scale", "zoom", "hinh anh", "dai dien", "cai dat"]);
+              const showQuality = isSettingMatchQuery("Chất lượng phát", ["play quality", "do phan gia", "video", "hls", "cai dat"]);
+              const showVersion = isSettingMatchQuery("Phiên bản ứng dụng", ["version", "info", "thong tin", "app", "beta", "cai dat"]);
+
+              // Dev Options
+              const devQueryMatch = settingsSearchQuery.toLowerCase().includes("dev") || settingsSearchQuery.toLowerCase().includes("nhà phát triển") || settingsSearchQuery.toLowerCase().includes("cài đặt");
+              const showHamburger = devQueryMatch || isSettingMatchQuery("Hamburger menu", ["menu", "dev", "sidebar", "hamburger"]);
+              const showSearchFunc = devQueryMatch || isSettingMatchQuery("Search function", ["tim kiem", "chuc nang search", "dev"]);
+              const showHomeRec = devQueryMatch || isSettingMatchQuery("Thử nghiệm trang chủ", ["recommend", "home", "trang chu", "dev"]);
+              const showPackage = devQueryMatch || isSettingMatchQuery("Package enabled", ["goi kenh", "m3u", "playlist", "dev"]);
+              const showImmersive = devQueryMatch || isSettingMatchQuery("Immersive search", ["tim kiem toan canh", "sau", "dev"]);
+              const showRemote = devQueryMatch || isSettingMatchQuery("Experimental remote control", ["remote", "bam so", "dieukhien", "dev"]);
+              const showBottomBar = devQueryMatch || isSettingMatchQuery("Bottom bar", ["thanh duoi", "menu bottom", "dev"]);
+              const showFloaty = devQueryMatch || (bottomBarEnabled && isSettingMatchQuery("Floaty bars", ["noi", "floating", "dev"]));
+              const showClock = devQueryMatch || isSettingMatchQuery("Display clock", ["dong ho", "time", "clock", "dev"]);
+              const showAnim = devQueryMatch || isSettingMatchQuery("Animation preview", ["hieu ung", "chuyen can", "dev"]);
+              const showRound = devQueryMatch || isSettingMatchQuery("Rounded corners", ["bo tron", "goc", "dev"]);
+              const showThickSearch = devQueryMatch || isSettingMatchQuery("Thick search", ["search day", "chieu cao", "tim kiem day", "dev"]);
+              const showNewIcon = devQueryMatch || isSettingMatchQuery("New icon", ["icon moi", "logo moi", "dev"]);
+              const showReorder = devQueryMatch || isSettingMatchQuery("Re-order channels", ["sap xep", "thu tu", "order", "dev"]);
+
+              const hasDevMatch = showHamburger || showSearchFunc || showHomeRec || showPackage || showImmersive || showRemote || showBottomBar || (bottomBarEnabled && showFloaty) || showClock || showAnim || showRound || showThickSearch || showNewIcon || showReorder;
+
+              const hasAnyMatch = showDarkMode || showColumns || showLogoScale || showQuality || showVersion || hasDevMatch;
+              
+              if (!hasAnyMatch) {
+                return (
+                  <div className={`text-center py-12 ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                    <SlidersHorizontal className="w-8 h-8 mx-auto mb-2 opacity-50 text-[#1a73e8]" />
+                    <p className="font-bold text-sm">Không tìm thấy cài đặt phù hợp</p>
+                    <p className="text-[10px] opacity-75 mt-1">Thử tìm kiếm với từ khóa khác (VD: "tối", "logo", "dev")</p>
                   </div>
-                  <ToggleSwitch checked={displayClockEnabled} onChange={() => {
-                    const newVal = !displayClockEnabled;
-                    setDisplayClockEnabled(newVal);
-                    if (newVal) {
-                      setAppCrashed(true);
-                    }
-                  }} />
-                </div>
+                );
+              }
 
-                {/* Dev Option F: Animation preview switch */}
-                <div className={`flex items-center justify-between py-4 border-t ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Animation preview</h4>
-                  </div>
-                  <ToggleSwitch checked={animationPreviewEnabled} onChange={() => setAnimationPreviewEnabled(!animationPreviewEnabled)} />
-                </div>
-
-                {/* Dev Option G: Rounded corners switch */}
-                <div className={`flex items-center justify-between py-4 border-t ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Rounded corners</h4>
-                  </div>
-                  <ToggleSwitch checked={roundedCornersEnabled} onChange={() => setRoundedCornersEnabled(!roundedCornersEnabled)} />
-                </div>
-
-                {/* Dev Option H: New icon switch */}
-                <div className={`flex items-center justify-between py-4 border-t flex-row ${
-                  darkMode ? "border-white/10" : "border-gray-200"
-                }`}>
-                  <div>
-                    <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>New icon</h4>
-                  </div>
-                  <ToggleSwitch checked={newIconEnabled} onChange={() => setNewIconEnabled(!newIconEnabled)} />
-                </div>
-
-                {/* Dev Option I: Re-order channels expandable section */}
-                <div className={`py-4 border-t ${darkMode ? "border-white/10" : "border-gray-200"}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Re-order channels</h4>
-                      <p className={`text-[10px] ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                        Tùy chỉnh và sắp xếp lại thứ tự của các kênh TV.
-                      </p>
+              return (
+                <div className="flex flex-col text-xs">
+                  {/* Option 1: Dark Mode Toggle with blue Toggle Switch as requested */}
+                  {showDarkMode && (
+                    <div className={`flex items-center justify-between py-4 border-b ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <div>
+                        <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Chế độ tối</h4>
+                      </div>
+                      <ToggleSwitch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowReorderPanel(!showReorderPanel)}
-                      className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer font-sans bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all ${
-                        roundedCornersEnabled ? "rounded-md" : "rounded-none"
-                      }`}
-                    >
-                      {showReorderPanel ? "Thu gọn" : "Mở rộng"}
-                    </button>
-                  </div>
+                  )}
 
-                  <AnimatePresence>
-                    {showReorderPanel && (
-                      <motion.div
-                        initial={animationPreviewEnabled ? { opacity: 0, height: 0 } : false}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={animationPreviewEnabled ? { opacity: 0, height: 0 } : undefined}
-                        className="overflow-hidden mt-3"
+                  {/* Option 2: Grid column tiles layout selector (flat rectangular selection) */}
+                  {showColumns && (
+                    <div className={`flex items-center justify-between py-4 border-b ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <div>
+                        <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Số ô kênh hiển thị</h4>
+                      </div>
+                      <select
+                        value={columnsCount}
+                        onChange={(e) => setColumnsCount(Number(e.target.value))}
+                        className={`px-3 py-1.5 text-xs font-bold leading-tight cursor-pointer focus:outline-none border rounded-none ${
+                          darkMode 
+                            ? "bg-[#1e1e21] border-white/10 text-white hover:bg-[#252529]" 
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
                       >
-                        <div className={`p-3 border space-y-2 max-h-[320px] overflow-y-auto custom-scrollbar ${
-                          darkMode ? "bg-[#121212] border-white/5 text-white" : "bg-gray-50 border-gray-200 text-gray-900"
-                        } ${roundedCornersEnabled ? "rounded-lg" : "rounded-none"}`}>
-                          <div className="flex justify-between items-center pb-1.5 border-b border-gray-200 dark:border-white/10">
-                            <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-gray-500">
-                              Lượt kênh ({allChannels.length})
-                            </span>
+                        <option value={2}>2 ô / dòng</option>
+                        <option value={3}>3 ô / dòng</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Option 3: Phóng to biểu tượng logo */}
+                  {showLogoScale && (
+                    <div className={`flex flex-col py-4 border-b gap-2 ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Phóng to biểu tượng</h4>
+                        </div>
+                        <span className={`font-mono text-xs font-bold text-[#1a73e8]`}>
+                          {logoScale}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 py-1 bg-transparent">
+                        <span className="text-[10px] text-gray-400 font-mono">0</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={logoScale}
+                          onChange={(e) => setLogoScale(Number(e.target.value))}
+                          className="flex-grow accent-[#1a73e8] h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span className="text-[10px] text-gray-400 font-mono">100</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Option: Chất lượng phát */}
+                  {showQuality && (
+                    <div className={`flex items-center justify-between py-4 border-b ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <div>
+                        <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Chất lượng phát</h4>
+                      </div>
+                      <select
+                        value={playbackQuality}
+                        onChange={(e) => setPlaybackQuality(e.target.value)}
+                        className={`px-3 py-1.5 text-xs font-bold leading-tight cursor-pointer focus:outline-none border rounded-none ${
+                          darkMode 
+                            ? "bg-[#1e1e21] border-white/10 text-white hover:bg-[#252529]" 
+                            : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <option value="360p">360p</option>
+                        <option value="480p">480p</option>
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Option 4: Version Info option - blended wrapper */}
+                  {showVersion && (
+                    <div className={`flex items-center justify-between py-4 border-b ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <div>
+                        <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Phiên bản ứng dụng</h4>
+                      </div>
+                      <span className={`font-mono text-[11px] font-bold px-2 py-1 rounded-none ${
+                        darkMode ? "bg-white/10 text-white" : "bg-gray-150 text-gray-800"
+                      }`}>
+                        0.1_beta_android_native_preview
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Option 4: Developer settings (Cài đặt nhà phát triển) - Toggle options */}
+                  {hasDevMatch && (
+                    <div className={`mt-6 pt-6 border-t ${
+                      darkMode ? "border-white/10" : "border-gray-200"
+                    }`}>
+                      <h3 className="font-bold text-xs uppercase tracking-wider mb-2 text-[#1a73e8]">
+                        Cài đặt nhà phát triển
+                      </h3>
+                      
+                      {/* Dev Option A: Hamburger Menu switch */}
+                      {showHamburger && (
+                        <div className={`flex items-center justify-between py-4 border-b ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Hamburger menu</h4>
+                          </div>
+                          <ToggleSwitch checked={hamburgerEnabled} onChange={() => setHamburgerEnabled(!hamburgerEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option B: Search function switch */}
+                      {showSearchFunc && (
+                        <div className={`flex items-center justify-between py-4 border-b ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Search function</h4>
+                          </div>
+                          <ToggleSwitch checked={searchEnabled} onChange={() => setSearchEnabled(!searchEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option C: Home page recommendations switch */}
+                      {showHomeRec && (
+                        <div className={`flex items-center justify-between py-4 border-b ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Thử nghiệm trang chủ</h4>
+                          </div>
+                          <ToggleSwitch checked={homeRecommendationEnabled} onChange={() => setHomeRecommendationEnabled(!homeRecommendationEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option J: Package enabled switch */}
+                      {showPackage && (
+                        <div className={`flex items-center justify-between py-4 border-b flex-row ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Package enabled</h4>
+                          </div>
+                          <ToggleSwitch checked={packageEnabled} onChange={() => {
+                            const newVal = !packageEnabled;
+                            setPackageEnabled(newVal);
+                            if (!newVal && activeTab === "package") {
+                              switchTab("trang-chu");
+                            }
+                          }} />
+                        </div>
+                      )}
+
+                      {/* Dev Option K: Immersive search switch */}
+                      {showImmersive && (
+                        <div className={`flex items-center justify-between py-4 border-b flex-row ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Immersive search</h4>
+                          </div>
+                          <ToggleSwitch checked={immersiveSearchEnabled} onChange={() => {
+                            const newVal = !immersiveSearchEnabled;
+                            setImmersiveSearchEnabled(newVal);
+                            if (!newVal && activeTab === "tim-kiem") {
+                              switchTab("trang-chu");
+                            }
+                          }} />
+                        </div>
+                      )}
+
+                      {/* Dev Option L: Experimental remote control switch */}
+                      {showRemote && (
+                        <div className={`flex items-center justify-between py-4 border-b flex-row ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Experimental remote control</h4>
+                          </div>
+                          <ToggleSwitch checked={remoteEnabled} onChange={() => setRemoteEnabled(!remoteEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option D: Bottom bar mode switch */}
+                      {showBottomBar && (
+                        <div className={`flex items-center justify-between py-4 border-b ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Bottom bar</h4>
+                          </div>
+                          <ToggleSwitch checked={bottomBarEnabled} onChange={() => {
+                            const newVal = !bottomBarEnabled;
+                            setBottomBarEnabled(newVal);
+                            if (newVal) {
+                              setAppCrashed(true);
+                            }
+                          }} />
+                        </div>
+                      )}
+
+                      {/* Dev Option D2: Floaty bars switch */}
+                      {showFloaty && (
+                        <div className={`flex items-center justify-between py-4 border-b ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Floaty bars</h4>
+                            <p className={`text-[10px] ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                              Làm cho thanh bottom bar nổi và bo tròn toàn bộ.
+                            </p>
+                          </div>
+                          <ToggleSwitch checked={floatyBarsEnabled} onChange={() => setFloatyBarsEnabled(!floatyBarsEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option E: Status bar clock switch */}
+                      {showClock && (
+                        <div className="flex items-center justify-between py-4">
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Display clock</h4>
+                          </div>
+                          <ToggleSwitch checked={displayClockEnabled} onChange={() => {
+                            const newVal = !displayClockEnabled;
+                            setDisplayClockEnabled(newVal);
+                            if (newVal) {
+                              setAppCrashed(true);
+                            }
+                          }} />
+                        </div>
+                      )}
+
+                      {/* Dev Option F: Animation preview switch */}
+                      {showAnim && (
+                        <div className={`flex items-center justify-between py-4 border-t ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Animation preview</h4>
+                          </div>
+                          <ToggleSwitch checked={animationPreviewEnabled} onChange={() => setAnimationPreviewEnabled(!animationPreviewEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option G: Rounded corners switch */}
+                      {showRound && (
+                        <div className={`flex items-center justify-between py-4 border-t ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Rounded corners</h4>
+                          </div>
+                          <ToggleSwitch checked={roundedCornersEnabled} onChange={() => setRoundedCornersEnabled(!roundedCornersEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option M: Thick search switch */}
+                      {showThickSearch && (
+                        <div className={`flex items-center justify-between py-4 border-t flex-row ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Thick search</h4>
+                          </div>
+                          <ToggleSwitch checked={thickSearchEnabled} onChange={() => setThickSearchEnabled(!thickSearchEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option H: New icon switch */}
+                      {showNewIcon && (
+                        <div className={`flex items-center justify-between py-4 border-t flex-row ${
+                          darkMode ? "border-white/10" : "border-gray-200"
+                        }`}>
+                          <div>
+                            <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>New icon</h4>
+                          </div>
+                          <ToggleSwitch checked={newIconEnabled} onChange={() => setNewIconEnabled(!newIconEnabled)} />
+                        </div>
+                      )}
+
+                      {/* Dev Option I: Re-order channels expandable section */}
+                      {showReorder && (
+                        <div className={`py-4 border-t ${darkMode ? "border-white/10" : "border-gray-200"}`}>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className={`font-bold text-sm ${darkMode ? "text-white" : "text-gray-900"}`}>Re-order channels</h4>
+                              <p className={`text-[10px] ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+                                Tùy chỉnh và sắp xếp lại thứ tự của các kênh TV.
+                              </p>
+                            </div>
                             <button
                               type="button"
-                              onClick={resetChannelOrder}
-                              className="text-[9px] font-sans font-bold text-red-500 hover:underline cursor-pointer"
+                              onClick={() => setShowReorderPanel(!showReorderPanel)}
+                              className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer font-sans bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all ${
+                                roundedCornersEnabled ? "rounded-md" : "rounded-none"
+                              }`}
                             >
-                              Khôi phục mặc định
+                              {showReorderPanel ? "Thu gọn" : "Mở rộng"}
                             </button>
                           </div>
 
-                          <div className="space-y-1">
-                            {allChannels.map((chan, idx) => (
+                          <AnimatePresence>
+                            {showReorderPanel && (
                               <motion.div
-                                layout
-                                key={chan.id}
-                                className={`flex items-center justify-between p-2 text-xs border ${
-                                  darkMode 
-                                    ? "bg-[#1c1c1f] border-white/5 hover:bg-[#252528] text-white" 
-                                    : "bg-white border-gray-150 hover:bg-gray-50 text-gray-900"
-                                } ${roundedCornersEnabled ? "rounded-md" : "rounded-none"}`}
+                                initial={animationPreviewEnabled ? { opacity: 0, height: 0 } : false}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={animationPreviewEnabled ? { opacity: 0, height: 0 } : undefined}
+                                className="overflow-hidden mt-3"
                               >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <span className="text-[10px] font-mono text-gray-500 w-4 font-bold text-center">
-                                    {idx + 1}
-                                  </span>
-                                  {chan.logo ? (
-                                    <img
-                                      src={chan.logo}
-                                      alt={chan.name}
-                                      className="w-5 h-5 object-contain select-none flex-shrink-0"
-                                      referrerPolicy="no-referrer"
-                                    />
-                                  ) : (
-                                    <div className="w-5 h-5 bg-[#1a73e8]/10 text-[#1a73e8] rounded-full flex items-center justify-center text-[8px] font-bold font-sans flex-shrink-0">
-                                      {chan.name.slice(0, 1)}
-                                    </div>
-                                  )}
-                                  <span className="font-bold truncate text-[11px] font-sans">
-                                    {chan.name}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center gap-0.5 flex-shrink-0">
-                                  {/* Delete Custom Channel */}
-                                  {(chan as any).isCustom && (
+                                <div className={`p-3 border space-y-2 max-h-[320px] overflow-y-auto custom-scrollbar ${
+                                  darkMode ? "bg-[#121212] border-white/5 text-white" : "bg-gray-50 border-gray-200 text-gray-900"
+                                } ${roundedCornersEnabled ? "rounded-lg" : "rounded-none"}`}>
+                                  <div className="flex justify-between items-center pb-1.5 border-b border-gray-200 dark:border-white/10">
+                                    <span className="text-[9px] font-sans font-bold uppercase tracking-wider text-gray-500">
+                                      Lượt kênh ({allChannels.length})
+                                    </span>
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        if (confirm(`Bạn có chắc chắn muốn xóa kênh "${chan.name}" không?`)) {
-                                          handleDeleteCustomTvChannel(chan.id);
-                                        }
-                                      }}
-                                      title="Xóa kênh"
-                                      className="p-1 text-red-500 hover:text-red-700 transition-colors cursor-pointer mr-1"
+                                      onClick={resetChannelOrder}
+                                      className="text-[9px] font-sans font-bold text-red-500 hover:underline cursor-pointer"
                                     >
-                                      <Trash2 className="w-3.5 h-3.5" />
+                                      Khôi phục mặc định
                                     </button>
-                                  )}
-                                  {/* Top */}
-                                  <button
-                                    type="button"
-                                    onClick={() => moveChannel(idx, "top")}
-                                    disabled={idx === 0}
-                                    title="Đưa lên đầu"
-                                    className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-                                  >
-                                    <ChevronsUp className="w-3.5 h-3.5" />
-                                  </button>
-                                  {/* Up */}
-                                  <button
-                                    type="button"
-                                    onClick={() => moveChannel(idx, "up")}
-                                    disabled={idx === 0}
-                                    title="Lên trên"
-                                    className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-                                  >
-                                    <ChevronUp className="w-3.5 h-3.5" />
-                                  </button>
-                                  {/* Down */}
-                                  <button
-                                    type="button"
-                                    onClick={() => moveChannel(idx, "down")}
-                                    disabled={idx === allChannels.length - 1}
-                                    title="Xuống dưới"
-                                    className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-                                  >
-                                    <ChevronDown className="w-3.5 h-3.5" />
-                                  </button>
-                                  {/* Bottom */}
-                                  <button
-                                    type="button"
-                                    onClick={() => moveChannel(idx, "bottom")}
-                                    disabled={idx === allChannels.length - 1}
-                                    title="Đưa xuống cuối"
-                                    className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-                                  >
-                                    <ChevronsDown className="w-3.5 h-3.5" />
-                                  </button>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    {allChannels.map((chan, idx) => (
+                                      <motion.div
+                                        layout
+                                        key={chan.id}
+                                        className={`flex items-center justify-between p-2 text-xs border ${
+                                          darkMode 
+                                            ? "bg-[#1c1c1f] border-white/5 hover:bg-[#252528] text-white" 
+                                            : "bg-white border-gray-150 hover:bg-gray-50 text-gray-900"
+                                        } ${roundedCornersEnabled ? "rounded-md" : "rounded-none"}`}
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="text-[10px] font-mono text-gray-500 w-4 font-bold text-center">
+                                            {idx + 1}
+                                          </span>
+                                          {chan.logo ? (
+                                            <img
+                                              src={chan.logo}
+                                              alt={chan.name}
+                                              className="w-5 h-5 object-contain select-none flex-shrink-0"
+                                              referrerPolicy="no-referrer"
+                                            />
+                                          ) : (
+                                            <div className="w-5 h-5 bg-[#1a73e8]/10 text-[#1a73e8] rounded-full flex items-center justify-center text-[8px] font-bold font-sans flex-shrink-0">
+                                              {chan.name.slice(0, 1)}
+                                            </div>
+                                          )}
+                                          <span className="font-bold truncate text-[11px] font-sans">
+                                            {chan.name}
+                                          </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                                          {/* Delete Custom Channel */}
+                                          {(chan as any).isCustom && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                if (confirm(`Bạn có chắc chắn muốn xóa kênh "${chan.name}" không?`)) {
+                                                  handleDeleteCustomTvChannel(chan.id);
+                                                }
+                                              }}
+                                              title="Xóa kênh"
+                                              className="p-1 text-red-500 hover:text-red-700 transition-colors cursor-pointer mr-1"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
+                                          {/* Top */}
+                                          <button
+                                            type="button"
+                                            onClick={() => moveChannel(idx, "top")}
+                                            disabled={idx === 0}
+                                            title="Đưa lên đầu"
+                                            className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+                                          >
+                                            <ChevronsUp className="w-3.5 h-3.5" />
+                                          </button>
+                                          {/* Up */}
+                                          <button
+                                            type="button"
+                                            onClick={() => moveChannel(idx, "up")}
+                                            disabled={idx === 0}
+                                            title="Lên trên"
+                                            className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+                                          >
+                                            <ChevronUp className="w-3.5 h-3.5" />
+                                          </button>
+                                          {/* Down */}
+                                          <button
+                                            type="button"
+                                            onClick={() => moveChannel(idx, "down")}
+                                            disabled={idx === allChannels.length - 1}
+                                            title="Xuống dưới"
+                                            className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+                                          >
+                                            <ChevronDown className="w-3.5 h-3.5" />
+                                          </button>
+                                          {/* Bottom */}
+                                          <button
+                                            type="button"
+                                            onClick={() => moveChannel(idx, "bottom")}
+                                            disabled={idx === allChannels.length - 1}
+                                            title="Đưa xuống cuối"
+                                            className="p-1 text-gray-400 hover:text-[#1a73e8] disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+                                          >
+                                            <ChevronsDown className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </div>
                                 </div>
                               </motion.div>
-                            ))}
-                          </div>
+                            )}
+                          </AnimatePresence>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-
-            </div>
+              );
+            })()}
           </motion.div>
         )}
 

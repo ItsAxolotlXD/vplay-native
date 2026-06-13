@@ -92,6 +92,22 @@ export default function ChannelList({
                 }`}
                 id={`chan-rect-${channel.id}`}
               >
+                {/* Channel Index/Number on top-left of the tile */}
+                {(() => {
+                  const globalIndex = channels.findIndex((c) => c.id === channel.id);
+                  if (globalIndex !== -1) {
+                    const paddedNumber = String(globalIndex + 1).padStart(3, "0");
+                    return (
+                      <span className={`absolute top-1 left-1.5 z-20 text-[10px] font-mono font-bold tracking-tighter select-none ${
+                        darkMode ? "text-gray-500 group-hover:text-gray-400" : "text-gray-400 group-hover:text-gray-500"
+                      }`}>
+                        ({paddedNumber})
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Delete button overlay for custom channel */}
                 {(channel as any).isCustom && onDeleteChannel && (
                   <button
