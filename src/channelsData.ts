@@ -100,7 +100,7 @@ export const CHANNELS_DATA: Channel[] = [
   {
     id: "vtv10-hd",
     name: "VTV10 HD",
-    logo: "https://static.wikia.nocookie.net/logos/images/d/d2/VTV10_30.03.2026-nay_v2.png/revision/latest?cb=20260427023458&path-prefix=uk",
+    logo: "https://static.wikia.nocookie.net/ftv/images/b/b3/10logo.png/revision/latest?cb=20260613020449&path-prefix=vi",
     group: "VTV",
     url: "https://live.fptplay53.net/live/media/VTV_can_tho/live_hls_avc/index.m3u8"
   },
